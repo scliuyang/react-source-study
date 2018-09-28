@@ -7,10 +7,10 @@
  * @flow
  */
 
-import type {ReactProviderType, ReactContext} from 'shared/ReactTypes';
-import type {Fiber} from 'react-reconciler/src/ReactFiber';
-import type {FiberRoot} from './ReactFiberRoot';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
+import type { ReactProviderType, ReactContext } from 'shared/ReactTypes';
+import type { Fiber } from 'react-reconciler/src/ReactFiber';
+import type { FiberRoot } from './ReactFiberRoot';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
 import checkPropTypes from 'prop-types/checkPropTypes';
 
 import {
@@ -55,22 +55,15 @@ import ReactStrictModeWarnings from './ReactStrictModeWarnings';
 import warning from 'shared/warning';
 import warningWithoutStack from 'shared/warningWithoutStack';
 import * as ReactCurrentFiber from './ReactCurrentFiber';
-import {cancelWorkTimer} from './ReactDebugFiberPerf';
+import { cancelWorkTimer } from './ReactDebugFiberPerf';
 
-import {applyDerivedStateFromProps} from './ReactFiberClassComponent';
-import {
-  mountChildFibers,
-  reconcileChildFibers,
-  cloneChildFibers,
-} from './ReactChildFiber';
-import {processUpdateQueue} from './ReactUpdateQueue';
-import {NoWork, Never} from './ReactFiberExpirationTime';
-import {AsyncMode, StrictMode} from './ReactTypeOfMode';
-import {
-  shouldSetTextContent,
-  shouldDeprioritizeSubtree,
-} from './ReactFiberHostConfig';
-import {pushHostContext, pushHostContainer} from './ReactFiberHostContext';
+import { applyDerivedStateFromProps } from './ReactFiberClassComponent';
+import { mountChildFibers, reconcileChildFibers, cloneChildFibers } from './ReactChildFiber';
+import { processUpdateQueue } from './ReactUpdateQueue';
+import { NoWork, Never } from './ReactFiberExpirationTime';
+import { AsyncMode, StrictMode } from './ReactTypeOfMode';
+import { shouldSetTextContent, shouldDeprioritizeSubtree } from './ReactFiberHostConfig';
+import { pushHostContext, pushHostContainer } from './ReactFiberHostContext';
 import {
   pushProvider,
   propagateContextChange,
@@ -78,7 +71,7 @@ import {
   prepareToReadContext,
   calculateChangedBits,
 } from './ReactFiberNewContext';
-import {stopProfilerTimerIfRunning} from './ReactProfilerTimer';
+import { stopProfilerTimerIfRunning } from './ReactProfilerTimer';
 import {
   getMaskedContext,
   getUnmaskedContext,
@@ -100,9 +93,9 @@ import {
   resumeMountClassInstance,
   updateClassInstance,
 } from './ReactFiberClassComponent';
-import {readLazyComponentType} from './ReactFiberLazyComponent';
-import {getResultFromResolvedThenable} from 'shared/ReactLazyComponent';
-import {resolveLazyComponentTag} from './ReactFiber';
+import { readLazyComponentType } from './ReactFiberLazyComponent';
+import { getResultFromResolvedThenable } from 'shared/ReactLazyComponent';
+import { resolveLazyComponentTag } from './ReactFiber';
 
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
@@ -110,11 +103,11 @@ let didWarnAboutBadClass;
 let didWarnAboutGetDerivedStateOnFunctionalComponent;
 let didWarnAboutStatelessRefs;
 
-if (__DEV__) {
-  didWarnAboutBadClass = {};
-  didWarnAboutGetDerivedStateOnFunctionalComponent = {};
-  didWarnAboutStatelessRefs = {};
-}
+// if (__DEV__) {
+//   didWarnAboutBadClass = {};
+//   didWarnAboutGetDerivedStateOnFunctionalComponent = {};
+//   didWarnAboutStatelessRefs = {};
+// }
 
 export function reconcileChildren(
   current: Fiber | null,
@@ -123,6 +116,7 @@ export function reconcileChildren(
   renderExpirationTime: ExpirationTime,
 ) {
   if (current === null) {
+    // 这个一个新的组件
     // If this is a fresh new component that hasn't been rendered yet, we
     // won't update its child set by applying minimal side-effects. Instead,
     // we will add them all to the child before it gets rendered. That means
@@ -164,11 +158,7 @@ function updateForwardRef(
   } else if (workInProgress.memoizedProps === nextProps) {
     const currentRef = current !== null ? current.ref : null;
     if (ref === currentRef) {
-      return bailoutOnAlreadyFinishedWork(
-        current,
-        workInProgress,
-        renderExpirationTime,
-      );
+      return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime);
     }
   }
 
@@ -182,12 +172,7 @@ function updateForwardRef(
     nextChildren = render(nextProps, ref);
   }
 
-  reconcileChildren(
-    current,
-    workInProgress,
-    nextChildren,
-    renderExpirationTime,
-  );
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
   memoizeProps(workInProgress, nextProps);
   return workInProgress.child;
 }
@@ -198,12 +183,7 @@ function updateFragment(
   renderExpirationTime: ExpirationTime,
 ) {
   const nextChildren = workInProgress.pendingProps;
-  reconcileChildren(
-    current,
-    workInProgress,
-    nextChildren,
-    renderExpirationTime,
-  );
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
   memoizeProps(workInProgress, nextChildren);
   return workInProgress.child;
 }
@@ -214,12 +194,7 @@ function updateMode(
   renderExpirationTime: ExpirationTime,
 ) {
   const nextChildren = workInProgress.pendingProps.children;
-  reconcileChildren(
-    current,
-    workInProgress,
-    nextChildren,
-    renderExpirationTime,
-  );
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
   memoizeProps(workInProgress, nextChildren);
   return workInProgress.child;
 }
@@ -234,22 +209,14 @@ function updateProfiler(
   }
   const nextProps = workInProgress.pendingProps;
   const nextChildren = nextProps.children;
-  reconcileChildren(
-    current,
-    workInProgress,
-    nextChildren,
-    renderExpirationTime,
-  );
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
   memoizeProps(workInProgress, nextProps);
   return workInProgress.child;
 }
 
 function markRef(current: Fiber | null, workInProgress: Fiber) {
   const ref = workInProgress.ref;
-  if (
-    (current === null && ref !== null) ||
-    (current !== null && current.ref !== ref)
-  ) {
+  if ((current === null && ref !== null) || (current !== null && current.ref !== ref)) {
     // Schedule a Ref effect
     workInProgress.effectTag |= Ref;
   }
@@ -278,12 +245,7 @@ function updateFunctionalComponent(
 
   // React DevTools reads this flag.
   workInProgress.effectTag |= PerformedWork;
-  reconcileChildren(
-    current,
-    workInProgress,
-    nextChildren,
-    renderExpirationTime,
-  );
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
   memoizeProps(workInProgress, nextProps);
   return workInProgress.child;
 }
@@ -311,18 +273,8 @@ function updateClassComponent(
   if (current === null) {
     if (workInProgress.stateNode === null) {
       // In the initial pass we might need to construct the instance.
-      constructClassInstance(
-        workInProgress,
-        Component,
-        nextProps,
-        renderExpirationTime,
-      );
-      mountClassInstance(
-        workInProgress,
-        Component,
-        nextProps,
-        renderExpirationTime,
-      );
+      constructClassInstance(workInProgress, Component, nextProps, renderExpirationTime);
+      mountClassInstance(workInProgress, Component, nextProps, renderExpirationTime);
       shouldUpdate = true;
     } else {
       // In a resume, we'll already have an instance we can reuse.
@@ -371,11 +323,7 @@ function finishClassComponent(
       invalidateContextProvider(workInProgress, Component, false);
     }
 
-    return bailoutOnAlreadyFinishedWork(
-      current,
-      workInProgress,
-      renderExpirationTime,
-    );
+    return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime);
   }
 
   const instance = workInProgress.stateNode;
@@ -385,8 +333,7 @@ function finishClassComponent(
   let nextChildren;
   if (
     didCaptureError &&
-    (!enableGetDerivedStateFromCatch ||
-      typeof Component.getDerivedStateFromCatch !== 'function')
+    (!enableGetDerivedStateFromCatch || typeof Component.getDerivedStateFromCatch !== 'function')
   ) {
     // If we captured an error, but getDerivedStateFrom catch is not defined,
     // unmount all the children. componentDidCatch will schedule an update to
@@ -399,20 +346,20 @@ function finishClassComponent(
       stopProfilerTimerIfRunning(workInProgress);
     }
   } else {
-    if (__DEV__) {
-      ReactCurrentFiber.setCurrentPhase('render');
-      nextChildren = instance.render();
-      if (
-        debugRenderPhaseSideEffects ||
-        (debugRenderPhaseSideEffectsForStrictMode &&
-          workInProgress.mode & StrictMode)
-      ) {
-        instance.render();
-      }
-      ReactCurrentFiber.setCurrentPhase(null);
-    } else {
-      nextChildren = instance.render();
-    }
+    // if (__DEV__) {
+    //   ReactCurrentFiber.setCurrentPhase('render');
+    //   nextChildren = instance.render();
+    //   if (
+    //     debugRenderPhaseSideEffects ||
+    //     (debugRenderPhaseSideEffectsForStrictMode &&
+    //       workInProgress.mode & StrictMode)
+    //   ) {
+    //     instance.render();
+    //   }
+    //   ReactCurrentFiber.setCurrentPhase(null);
+    // } else {
+    nextChildren = instance.render();
+    // }
   }
 
   // React DevTools reads this flag.
@@ -426,12 +373,7 @@ function finishClassComponent(
     // remounting all children regardless of whether their their
     // identity matches.
   }
-  reconcileChildren(
-    current,
-    workInProgress,
-    nextChildren,
-    renderExpirationTime,
-  );
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
   // Memoize props and state using the values we just used to render.
   // TODO: Restructure so we never read values from the instance.
   memoizeState(workInProgress, instance.state);
@@ -472,13 +414,7 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
   const nextProps = workInProgress.pendingProps;
   const prevState = workInProgress.memoizedState;
   const prevChildren = prevState !== null ? prevState.element : null;
-  processUpdateQueue(
-    workInProgress,
-    updateQueue,
-    nextProps,
-    null,
-    renderExpirationTime,
-  );
+  processUpdateQueue(workInProgress, updateQueue, nextProps, null, renderExpirationTime);
   const nextState = workInProgress.memoizedState;
   // Caution: React DevTools currently depends on this property
   // being called "element".
@@ -487,11 +423,7 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
     // If the state is the same as before, that's a bailout because we had
     // no work that expires at this time.
     resetHydrationState();
-    return bailoutOnAlreadyFinishedWork(
-      current,
-      workInProgress,
-      renderExpirationTime,
-    );
+    return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime);
   }
   const root: FiberRoot = workInProgress.stateNode;
   if (
@@ -522,12 +454,7 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
   } else {
     // Otherwise reset hydration state in case we aborted and resumed another
     // root.
-    reconcileChildren(
-      current,
-      workInProgress,
-      nextChildren,
-      renderExpirationTime,
-    );
+    reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
     resetHydrationState();
   }
   return workInProgress.child;
@@ -537,6 +464,7 @@ function updateHostComponent(current, workInProgress, renderExpirationTime) {
   pushHostContext(workInProgress);
 
   if (current === null) {
+    // 跟ssr相关，暂时忽略
     tryToClaimNextHydratableInstance(workInProgress);
   }
 
@@ -548,6 +476,7 @@ function updateHostComponent(current, workInProgress, renderExpirationTime) {
   const isDirectTextChild = shouldSetTextContent(type, nextProps);
 
   if (isDirectTextChild) {
+    // 特殊情况，就不给child分配一个HostText节点，然后访问之，应该是提高性能用的
     // We special case a direct text child of a host node. This is a common
     // case. We won't handle it as a reified child. We will instead handle
     // this in the host environment that also have access to this prop. That
@@ -573,12 +502,7 @@ function updateHostComponent(current, workInProgress, renderExpirationTime) {
     return null;
   }
 
-  reconcileChildren(
-    current,
-    workInProgress,
-    nextChildren,
-    renderExpirationTime,
-  );
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
   memoizeProps(workInProgress, nextProps);
   return workInProgress.child;
 }
@@ -609,12 +533,7 @@ function resolveDefaultProps(Component, baseProps) {
   return baseProps;
 }
 
-function mountIndeterminateComponent(
-  current,
-  workInProgress,
-  Component,
-  renderExpirationTime,
-) {
+function mountIndeterminateComponent(current, workInProgress, Component, renderExpirationTime) {
   invariant(
     current === null,
     'An indeterminate component should never have mounted. This error is ' +
@@ -622,16 +541,9 @@ function mountIndeterminateComponent(
   );
 
   const props = workInProgress.pendingProps;
-  if (
-    typeof Component === 'object' &&
-    Component !== null &&
-    typeof Component.then === 'function'
-  ) {
+  if (typeof Component === 'object' && Component !== null && typeof Component.then === 'function') {
     Component = readLazyComponentType(Component);
-    const resolvedTag = (workInProgress.tag = resolveLazyComponentTag(
-      workInProgress,
-      Component,
-    ));
+    const resolvedTag = (workInProgress.tag = resolveLazyComponentTag(workInProgress, Component));
     const resolvedProps = resolveDefaultProps(Component, props);
     switch (resolvedTag) {
       case FunctionalComponentLazy: {
@@ -682,10 +594,7 @@ function mountIndeterminateComponent(
   let value;
 
   if (__DEV__) {
-    if (
-      Component.prototype &&
-      typeof Component.prototype.render === 'function'
-    ) {
+    if (Component.prototype && typeof Component.prototype.render === 'function') {
       const componentName = getComponentName(Component) || 'Unknown';
 
       if (!didWarnAboutBadClass[componentName]) {
@@ -737,12 +646,7 @@ function mountIndeterminateComponent(
 
     const getDerivedStateFromProps = Component.getDerivedStateFromProps;
     if (typeof getDerivedStateFromProps === 'function') {
-      applyDerivedStateFromProps(
-        workInProgress,
-        Component,
-        getDerivedStateFromProps,
-        props,
-      );
+      applyDerivedStateFromProps(workInProgress, Component, getDerivedStateFromProps, props);
     }
 
     adoptClassInstance(workInProgress, value);
@@ -798,9 +702,7 @@ function mountIndeterminateComponent(
             '%s: Stateless functional components do not support getDerivedStateFromProps.',
             componentName,
           );
-          didWarnAboutGetDerivedStateOnFunctionalComponent[
-            componentName
-          ] = true;
+          didWarnAboutGetDerivedStateOnFunctionalComponent[componentName] = true;
         }
       }
     }
@@ -810,18 +712,13 @@ function mountIndeterminateComponent(
   }
 }
 
-function updatePlaceholderComponent(
-  current,
-  workInProgress,
-  renderExpirationTime,
-) {
+function updatePlaceholderComponent(current, workInProgress, renderExpirationTime) {
   if (enableSuspense) {
     const nextProps = workInProgress.pendingProps;
 
     // Check if we already attempted to render the normal state. If we did,
     // and we timed out, render the placeholder state.
-    const alreadyCaptured =
-      (workInProgress.effectTag & DidCapture) === NoEffect;
+    const alreadyCaptured = (workInProgress.effectTag & DidCapture) === NoEffect;
 
     let nextDidTimeout;
     if (current !== null && workInProgress.updateQueue !== null) {
@@ -864,12 +761,7 @@ function updatePlaceholderComponent(
 
     workInProgress.memoizedProps = nextProps;
     workInProgress.memoizedState = nextDidTimeout;
-    reconcileChildren(
-      current,
-      workInProgress,
-      nextChildren,
-      renderExpirationTime,
-    );
+    reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
     return workInProgress.child;
   } else {
     return null;
@@ -897,12 +789,7 @@ function updatePortalComponent(
     );
     memoizeProps(workInProgress, nextChildren);
   } else {
-    reconcileChildren(
-      current,
-      workInProgress,
-      nextChildren,
-      renderExpirationTime,
-    );
+    reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime);
     memoizeProps(workInProgress, nextChildren);
   }
   return workInProgress.child;
@@ -943,25 +830,13 @@ function updateContextProvider(
     const changedBits = calculateChangedBits(context, newValue, oldValue);
     if (changedBits === 0) {
       // No change. Bailout early if children are the same.
-      if (
-        oldProps.children === newProps.children &&
-        !hasLegacyContextChanged()
-      ) {
-        return bailoutOnAlreadyFinishedWork(
-          current,
-          workInProgress,
-          renderExpirationTime,
-        );
+      if (oldProps.children === newProps.children && !hasLegacyContextChanged()) {
+        return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime);
       }
     } else {
       // The context value changed. Search for matching consumers and schedule
       // them to update.
-      propagateContextChange(
-        workInProgress,
-        context,
-        changedBits,
-        renderExpirationTime,
-      );
+      propagateContextChange(workInProgress, context, changedBits, renderExpirationTime);
     }
   }
 
@@ -1046,10 +921,7 @@ function bailoutOnAlreadyFinishedWork(
 
   // Check if the children have any pending work.
   const childExpirationTime = workInProgress.childExpirationTime;
-  if (
-    childExpirationTime === NoWork ||
-    childExpirationTime > renderExpirationTime
-  ) {
+  if (childExpirationTime === NoWork || childExpirationTime > renderExpirationTime) {
     // The children don't have any work either. We can skip them.
     // TODO: Once we add back resuming, we should check if the children are
     // a work-in-progress set. If so, we need to transfer their effects.
@@ -1081,8 +953,7 @@ function beginWork(
   const updateExpirationTime = workInProgress.expirationTime;
   if (
     !hasLegacyContextChanged() &&
-    (updateExpirationTime === NoWork ||
-      updateExpirationTime > renderExpirationTime)
+    (updateExpirationTime === NoWork || updateExpirationTime > renderExpirationTime)
   ) {
     // This fiber does not have any pending work. Bailout without entering
     // the begin phase. There's still some bookkeeping we that needs to be done
@@ -1111,10 +982,7 @@ function beginWork(
         break;
       }
       case HostPortal:
-        pushHostContainer(
-          workInProgress,
-          workInProgress.stateNode.containerInfo,
-        );
+        pushHostContainer(workInProgress, workInProgress.stateNode.containerInfo);
         break;
       case ContextProvider: {
         const newValue = workInProgress.memoizedProps.value;
@@ -1127,25 +995,17 @@ function beginWork(
         }
         break;
     }
-    return bailoutOnAlreadyFinishedWork(
-      current,
-      workInProgress,
-      renderExpirationTime,
-    );
+    return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime);
   }
 
   // Before entering the begin phase, clear the expiration time.
+  // TODO: 为什么要清除？不会丢失么
   workInProgress.expirationTime = NoWork;
 
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
       const Component = workInProgress.type;
-      return mountIndeterminateComponent(
-        current,
-        workInProgress,
-        Component,
-        renderExpirationTime,
-      );
+      return mountIndeterminateComponent(current, workInProgress, Component, renderExpirationTime);
     }
     case FunctionalComponent: {
       const Component = workInProgress.type;
@@ -1198,23 +1058,16 @@ function beginWork(
       return child;
     }
     case HostRoot:
+      // vDom根节点挂载
       return updateHostRoot(current, workInProgress, renderExpirationTime);
     case HostComponent:
       return updateHostComponent(current, workInProgress, renderExpirationTime);
     case HostText:
       return updateHostText(current, workInProgress);
     case PlaceholderComponent:
-      return updatePlaceholderComponent(
-        current,
-        workInProgress,
-        renderExpirationTime,
-      );
+      return updatePlaceholderComponent(current, workInProgress, renderExpirationTime);
     case HostPortal:
-      return updatePortalComponent(
-        current,
-        workInProgress,
-        renderExpirationTime,
-      );
+      return updatePortalComponent(current, workInProgress, renderExpirationTime);
     case ForwardRef: {
       const type = workInProgress.type;
       return updateForwardRef(
@@ -1245,17 +1098,9 @@ function beginWork(
     case Profiler:
       return updateProfiler(current, workInProgress, renderExpirationTime);
     case ContextProvider:
-      return updateContextProvider(
-        current,
-        workInProgress,
-        renderExpirationTime,
-      );
+      return updateContextProvider(current, workInProgress, renderExpirationTime);
     case ContextConsumer:
-      return updateContextConsumer(
-        current,
-        workInProgress,
-        renderExpirationTime,
-      );
+      return updateContextConsumer(current, workInProgress, renderExpirationTime);
     default:
       invariant(
         false,
@@ -1265,4 +1110,4 @@ function beginWork(
   }
 }
 
-export {beginWork};
+export { beginWork };

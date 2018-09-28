@@ -133,7 +133,7 @@ export function setValueForProperty(
       if (value === null) {
         node.removeAttribute(attributeName);
       } else {
-        node.setAttribute(attributeName, '' + (value: any));
+        node.setAttribute(attributeName, '' + value);
       }
     }
     return;
@@ -143,11 +143,11 @@ export function setValueForProperty(
     const {propertyName} = propertyInfo;
     if (value === null) {
       const {type} = propertyInfo;
-      (node: any)[propertyName] = type === BOOLEAN ? false : '';
+      node[propertyName] = type === BOOLEAN ? false : '';
     } else {
       // Contrary to `setAttribute`, object properties are properly
       // `toString`ed by IE8/9.
-      (node: any)[propertyName] = value;
+      node[propertyName] = value;
     }
     return;
   }

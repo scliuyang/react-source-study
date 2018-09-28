@@ -6,16 +6,45 @@ import logo from './logo.svg';
 import './App.css';
 
 class App extends Component {
+  state = {
+    number: 1,
+  };
+
+  static getDerivedStateFromProps(props, state) {
+    console.log('getDerivedStateFromProps');
+    return {
+      number: props.number,
+    };
+  }
+
+  shouldComponentUpdate() {
+    console.log('shouldComponentUpdate');
+    return true;
+  }
+
+  static getSnapshotBeforeUpdate() {
+    console.log('getSnapshotBeforeUpdate');
+  }
+
+  componentDidMount() {
+    console.log('componentDidMount');
+  }
+
+  componentDidUpdate() {
+    console.log('componentDidMount');
+  }
+
+  onClick = () => {
+    this.setState({
+      number: this.state.number + 1,
+    });
+  };
+
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        <span>{this.state.number}</span>
+        <button onClick={this.onClick}>click</button>
       </div>
     );
   }

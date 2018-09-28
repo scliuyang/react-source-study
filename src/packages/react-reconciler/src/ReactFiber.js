@@ -87,6 +87,7 @@ export type Fiber = {|
   // minimize the number of objects created during the initial render.
 
   // Tag identifying the type of fiber.
+  // 标志这个fiber的type类型
   tag: WorkTag,
 
   // Unique identifier of this child.
@@ -96,6 +97,7 @@ export type Fiber = {|
   type: any,
 
   // The local state associated with this fiber.
+  // 指向该fiber对应的dom或者React组件实例
   stateNode: any,
 
   // Conceptual aliases
@@ -104,14 +106,19 @@ export type Fiber = {|
 
   // Remaining fields belong to Fiber
 
+  // 单链表树形结构
   // The Fiber to return to after finishing processing this one.
   // This is effectively the parent, but there can be multiple parents (two)
   // so this is only the parent of the thing we're currently processing.
   // It is conceptually the same as the return address of a stack frame.
+  // 根据资料来看，这个是树结构的父节点地址
+  // 有人说是当前任务完成后向谁提交结果
   return: Fiber | null,
 
   // Singly Linked List Tree Structure.
+  // 第一个子节点
   child: Fiber | null,
+  // 兄弟节点
   sibling: Fiber | null,
   index: number,
 
@@ -120,13 +127,16 @@ export type Fiber = {|
   ref: null | (((handle: mixed) => void) & {_stringRef: ?string}) | RefObject,
 
   // Input is the data coming into process this fiber. Arguments. Props.
-  pendingProps: any, // This type will be more specific once we overload the tag.
-  memoizedProps: any, // The props used to create the output.
+  // pendingProps = memoizedProps证明此节点不用重新渲染
+  pendingProps: any, // 当前输入的props做为参数渲染dom树 This type will be more specific once we overload the tag.
+  memoizedProps: any, // 生成完dom树后把pendingProps保存到这个参数上用于比对 The props used to create the output.
 
   // A queue of state updates and callbacks.
+  // setState调用队列,如果使用则setState是异步队列
   updateQueue: UpdateQueue<any> | null,
 
   // The state used to create the output
+  // 当前dom状态的state副本
   memoizedState: any,
 
   // A linked-list of contexts that this fiber depends on
@@ -138,41 +148,49 @@ export type Fiber = {|
   // parent. Additional flags can be set at creation time, but after that the
   // value should remain unchanged throughout the fiber's lifetime, particularly
   // before its child fibers are created.
-  mode: TypeOfMode,
+  mode: TypeOfMode, // 模式？？？
 
   // Effect
+  // fiber在commit阶段需要做的任务
   effectTag: SideEffectTag,
 
   // Singly linked list fast path to the next fiber with side-effects.
+  // 链表,下一个fiber任务的地址
   nextEffect: Fiber | null,
 
   // The first and last fiber with side-effect within this subtree. This allows
   // us to reuse a slice of the linked list when we reuse the work done within
   // this fiber.
+  // 好像是当异步渲染中断的时候好恢复
   firstEffect: Fiber | null,
   lastEffect: Fiber | null,
 
   // Represents a time in the future by which this work should be completed.
   // Does not include work found in its subtree.
+  // 任务期望完成截止时间
   expirationTime: ExpirationTime,
 
   // This is used to quickly determine if a subtree has no pending changes.
+  // 用于确定子树有没有等待进行的任务
   childExpirationTime: ExpirationTime,
 
   // This is a pooled version of a Fiber. Every fiber that gets updated will
   // eventually have a pair. There are cases when we can clean up pairs to save
-  // memory if we need to.
+  // memory if we need to. 
+  // 指向workingProgressFiber
   alternate: Fiber | null,
 
   // Time spent rendering this Fiber and its descendants for the current update.
   // This tells us how well the tree makes use of sCU for memoization.
   // It is reset to 0 each time we render and only updated when we don't bailout.
   // This field is only set when the enableProfilerTimer flag is enabled.
+  // debug用，当前fiber更新的实际使用时间
   actualDuration?: number,
 
   // If the Fiber is currently active in the "render" phase,
   // This marks the time at which the work began.
   // This field is only set when the enableProfilerTimer flag is enabled.
+  // debug用，render开始时间
   actualStartTime?: number,
 
   // Duration of the most recent render time for this Fiber.

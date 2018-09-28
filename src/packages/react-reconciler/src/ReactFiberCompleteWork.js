@@ -457,6 +457,7 @@ function completeWork(
               currentHostContext,
             )
           ) {
+            // TODO: 这里只有需要autofocus的元素才会到这里，后面看看
             markUpdate(workInProgress);
           }
           workInProgress.stateNode = instance;

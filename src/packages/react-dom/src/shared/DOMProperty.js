@@ -170,7 +170,7 @@ export function shouldRemoveAttribute(
       case NUMERIC:
         return isNaN(value);
       case POSITIVE_NUMERIC:
-        return isNaN(value) || (value: any) < 1;
+        return isNaN(value) || value < 1;
     }
   }
   return false;

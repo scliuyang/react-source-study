@@ -163,32 +163,34 @@ export function createInstance(
   internalInstanceHandle: Object,
 ): Instance {
   let parentNamespace: string;
-  if (__DEV__) {
-    // TODO: take namespace into account when validating.
-    const hostContextDev = ((hostContext: any): HostContextDev);
-    validateDOMNesting(type, null, hostContextDev.ancestorInfo);
-    if (
-      typeof props.children === 'string' ||
-      typeof props.children === 'number'
-    ) {
-      const string = '' + props.children;
-      const ownAncestorInfo = updatedAncestorInfo(
-        hostContextDev.ancestorInfo,
-        type,
-      );
-      validateDOMNesting(null, string, ownAncestorInfo);
-    }
-    parentNamespace = hostContextDev.namespace;
-  } else {
+  // if (__DEV__) {
+  //   // TODO: take namespace into account when validating.
+  //   const hostContextDev = ((hostContext: any): HostContextDev);
+  //   validateDOMNesting(type, null, hostContextDev.ancestorInfo);
+  //   if (
+  //     typeof props.children === 'string' ||
+  //     typeof props.children === 'number'
+  //   ) {
+  //     const string = '' + props.children;
+  //     const ownAncestorInfo = updatedAncestorInfo(
+  //       hostContextDev.ancestorInfo,
+  //       type,
+  //     );
+  //     validateDOMNesting(null, string, ownAncestorInfo);
+  //   }
+  //   parentNamespace = hostContextDev.namespace;
+  // } else {
     parentNamespace = ((hostContext: any): HostContextProd);
-  }
+  // }
   const domElement: Instance = createElement(
     type,
     props,
     rootContainerInstance,
     parentNamespace,
   );
+  // 这里其实是在dom上添加一个__reactInternalInstance指向它的fiber
   precacheFiberNode(internalInstanceHandle, domElement);
+  // dom上填一个__reactEventHandlers指向props
   updateFiberProps(domElement, props);
   return domElement;
 }
@@ -207,7 +209,9 @@ export function finalizeInitialChildren(
   rootContainerInstance: Container,
   hostContext: HostContext,
 ): boolean {
+  // 给dom元素设置property，文本内容啊之类的 div.textContent = 1;
   setInitialProperties(domElement, type, props, rootContainerInstance);
+  // 是否需要自动获取焦点
   return shouldAutoFocusHostComponent(type, props);
 }
 
@@ -243,6 +247,12 @@ export function prepareUpdate(
   );
 }
 
+/**
+ * 判断该元素的子元素是不是文本元素
+ * 比如textarea的子元素是不能有其他html的
+ * @param {*} type 
+ * @param {*} props 
+ */
 export function shouldSetTextContent(type: string, props: Props): boolean {
   return (
     type === 'textarea' ||
@@ -353,6 +363,7 @@ export function appendChildToContainer(
     parentNode = container;
     parentNode.appendChild(child);
   }
+  // safari兼容
   // This container might be used for a portal.
   // If something inside a portal is clicked, that click should bubble
   // through the React tree. However, on Mobile Safari the click would

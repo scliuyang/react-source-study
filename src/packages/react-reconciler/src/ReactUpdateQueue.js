@@ -213,6 +213,7 @@ function appendUpdateToQueue<State>(
   }
 }
 
+// 队列更新
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   // Update queues are created lazily.
   const alternate = fiber.alternate;
@@ -269,23 +270,23 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
     }
   }
 
-  if (__DEV__) {
-    if (
-      (fiber.tag === ClassComponent || fiber.tag === ClassComponentLazy) &&
-      (currentlyProcessingQueue === queue1 ||
-        (queue2 !== null && currentlyProcessingQueue === queue2)) &&
-      !didWarnUpdateInsideUpdate
-    ) {
-      warningWithoutStack(
-        false,
-        'An update (setState, replaceState, or forceUpdate) was scheduled ' +
-          'from inside an update function. Update functions should be pure, ' +
-          'with zero side-effects. Consider using componentDidUpdate or a ' +
-          'callback.',
-      );
-      didWarnUpdateInsideUpdate = true;
-    }
-  }
+  // if (__DEV__) {
+  //   if (
+  //     (fiber.tag === ClassComponent || fiber.tag === ClassComponentLazy) &&
+  //     (currentlyProcessingQueue === queue1 ||
+  //       (queue2 !== null && currentlyProcessingQueue === queue2)) &&
+  //     !didWarnUpdateInsideUpdate
+  //   ) {
+  //     warningWithoutStack(
+  //       false,
+  //       'An update (setState, replaceState, or forceUpdate) was scheduled ' +
+  //         'from inside an update function. Update functions should be pure, ' +
+  //         'with zero side-effects. Consider using componentDidUpdate or a ' +
+  //         'callback.',
+  //     );
+  //     didWarnUpdateInsideUpdate = true;
+  //   }
+  // }
 }
 
 export function enqueueCapturedUpdate<State>(
@@ -347,15 +348,15 @@ function getStateFromUpdate<State>(
       const payload = update.payload;
       if (typeof payload === 'function') {
         // Updater function
-        if (__DEV__) {
-          if (
-            debugRenderPhaseSideEffects ||
-            (debugRenderPhaseSideEffectsForStrictMode &&
-              workInProgress.mode & StrictMode)
-          ) {
-            payload.call(instance, prevState, nextProps);
-          }
-        }
+        // if (__DEV__) {
+        //   if (
+        //     debugRenderPhaseSideEffects ||
+        //     (debugRenderPhaseSideEffectsForStrictMode &&
+        //       workInProgress.mode & StrictMode)
+        //   ) {
+        //     payload.call(instance, prevState, nextProps);
+        //   }
+        // }
         return payload.call(instance, prevState, nextProps);
       }
       // State object
@@ -371,15 +372,15 @@ function getStateFromUpdate<State>(
       let partialState;
       if (typeof payload === 'function') {
         // Updater function
-        if (__DEV__) {
-          if (
-            debugRenderPhaseSideEffects ||
-            (debugRenderPhaseSideEffectsForStrictMode &&
-              workInProgress.mode & StrictMode)
-          ) {
-            payload.call(instance, prevState, nextProps);
-          }
-        }
+        // if (__DEV__) {
+        //   if (
+        //     debugRenderPhaseSideEffects ||
+        //     (debugRenderPhaseSideEffectsForStrictMode &&
+        //       workInProgress.mode & StrictMode)
+        //   ) {
+        //     payload.call(instance, prevState, nextProps);
+        //   }
+        // }
         partialState = payload.call(instance, prevState, nextProps);
       } else {
         // Partial state object
@@ -408,12 +409,12 @@ export function processUpdateQueue<State>(
   renderExpirationTime: ExpirationTime,
 ): void {
   hasForceUpdate = false;
-
+  // 保证workInProgress的queue是alternate也就是master分支上的clone体
   queue = ensureWorkInProgressQueueIsAClone(workInProgress, queue);
 
-  if (__DEV__) {
-    currentlyProcessingQueue = queue;
-  }
+  // if (__DEV__) {
+  //   currentlyProcessingQueue = queue;
+  // }
 
   // These values may change as we process the queue.
   let newBaseState = queue.baseState;
@@ -446,6 +447,7 @@ export function processUpdateQueue<State>(
     } else {
       // This update does have sufficient priority. Process it and compute
       // a new result.
+      // 该update任务由足够的优先级
       resultState = getStateFromUpdate(
         workInProgress,
         queue,
@@ -458,6 +460,7 @@ export function processUpdateQueue<State>(
       if (callback !== null) {
         workInProgress.effectTag |= Callback;
         // Set this to null, in case it was mutated during an aborted render.
+        // 把改update从链表中断开
         update.nextEffect = null;
         if (queue.lastEffect === null) {
           queue.firstEffect = queue.lastEffect = update;

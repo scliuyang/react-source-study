@@ -58,11 +58,11 @@ export function setValueForStyles(node, styles) {
       continue;
     }
     const isCustomProperty = styleName.indexOf('--') === 0;
-    if (__DEV__) {
-      if (!isCustomProperty) {
-        warnValidStyle(styleName, styles[styleName]);
-      }
-    }
+    // if (__DEV__) {
+    //   if (!isCustomProperty) {
+    //     warnValidStyle(styleName, styles[styleName]);
+    //   }
+    // }
     const styleValue = dangerousStyleValue(
       styleName,
       styles[styleName],

@@ -80,7 +80,7 @@ if (__DEV__) {
     if (callback === null || typeof callback === 'function') {
       return;
     }
-    const key = `${callerName}_${(callback: any)}`;
+    const key = `${callerName}_${(callback)}`;
     if (!didWarnOnInvalidCallback.has(key)) {
       didWarnOnInvalidCallback.add(key);
       warningWithoutStack(
@@ -483,15 +483,15 @@ function constructClassInstance(
     : emptyContextObject;
 
   // Instantiate twice to help detect side-effects.
-  if (__DEV__) {
-    if (
-      debugRenderPhaseSideEffects ||
-      (debugRenderPhaseSideEffectsForStrictMode &&
-        workInProgress.mode & StrictMode)
-    ) {
-      new ctor(props, context); // eslint-disable-line no-new
-    }
-  }
+  // if (__DEV__) {
+  //   if (
+  //     debugRenderPhaseSideEffects ||
+  //     (debugRenderPhaseSideEffectsForStrictMode &&
+  //       workInProgress.mode & StrictMode)
+  //   ) {
+  //     new ctor(props, context); // eslint-disable-line no-new
+  //   }
+  // }
 
   const instance = new ctor(props, context);
   const state = (workInProgress.memoizedState =
@@ -500,90 +500,90 @@ function constructClassInstance(
       : null);
   adoptClassInstance(workInProgress, instance);
 
-  if (__DEV__) {
-    if (typeof ctor.getDerivedStateFromProps === 'function' && state === null) {
-      const componentName = getComponentName(ctor) || 'Component';
-      if (!didWarnAboutUninitializedState.has(componentName)) {
-        didWarnAboutUninitializedState.add(componentName);
-        warningWithoutStack(
-          false,
-          '`%s` uses `getDerivedStateFromProps` but its initial state is ' +
-            '%s. This is not recommended. Instead, define the initial state by ' +
-            'assigning an object to `this.state` in the constructor of `%s`. ' +
-            'This ensures that `getDerivedStateFromProps` arguments have a consistent shape.',
-          componentName,
-          instance.state === null ? 'null' : 'undefined',
-          componentName,
-        );
-      }
-    }
-
-    // If new component APIs are defined, "unsafe" lifecycles won't be called.
-    // Warn about these lifecycles if they are present.
-    // Don't warn about react-lifecycles-compat polyfilled methods though.
-    if (
-      typeof ctor.getDerivedStateFromProps === 'function' ||
-      typeof instance.getSnapshotBeforeUpdate === 'function'
-    ) {
-      let foundWillMountName = null;
-      let foundWillReceivePropsName = null;
-      let foundWillUpdateName = null;
-      if (
-        typeof instance.componentWillMount === 'function' &&
-        instance.componentWillMount.__suppressDeprecationWarning !== true
-      ) {
-        foundWillMountName = 'componentWillMount';
-      } else if (typeof instance.UNSAFE_componentWillMount === 'function') {
-        foundWillMountName = 'UNSAFE_componentWillMount';
-      }
-      if (
-        typeof instance.componentWillReceiveProps === 'function' &&
-        instance.componentWillReceiveProps.__suppressDeprecationWarning !== true
-      ) {
-        foundWillReceivePropsName = 'componentWillReceiveProps';
-      } else if (
-        typeof instance.UNSAFE_componentWillReceiveProps === 'function'
-      ) {
-        foundWillReceivePropsName = 'UNSAFE_componentWillReceiveProps';
-      }
-      if (
-        typeof instance.componentWillUpdate === 'function' &&
-        instance.componentWillUpdate.__suppressDeprecationWarning !== true
-      ) {
-        foundWillUpdateName = 'componentWillUpdate';
-      } else if (typeof instance.UNSAFE_componentWillUpdate === 'function') {
-        foundWillUpdateName = 'UNSAFE_componentWillUpdate';
-      }
-      if (
-        foundWillMountName !== null ||
-        foundWillReceivePropsName !== null ||
-        foundWillUpdateName !== null
-      ) {
-        const componentName = getComponentName(ctor) || 'Component';
-        const newApiName =
-          typeof ctor.getDerivedStateFromProps === 'function'
-            ? 'getDerivedStateFromProps()'
-            : 'getSnapshotBeforeUpdate()';
-        if (!didWarnAboutLegacyLifecyclesAndDerivedState.has(componentName)) {
-          didWarnAboutLegacyLifecyclesAndDerivedState.add(componentName);
-          warningWithoutStack(
-            false,
-            'Unsafe legacy lifecycles will not be called for components using new component APIs.\n\n' +
-              '%s uses %s but also contains the following legacy lifecycles:%s%s%s\n\n' +
-              'The above lifecycles should be removed. Learn more about this warning here:\n' +
-              'https://fb.me/react-async-component-lifecycle-hooks',
-            componentName,
-            newApiName,
-            foundWillMountName !== null ? `\n  ${foundWillMountName}` : '',
-            foundWillReceivePropsName !== null
-              ? `\n  ${foundWillReceivePropsName}`
-              : '',
-            foundWillUpdateName !== null ? `\n  ${foundWillUpdateName}` : '',
-          );
-        }
-      }
-    }
-  }
+  // if (__DEV__) {
+  //   if (typeof ctor.getDerivedStateFromProps === 'function' && state === null) {
+  //     const componentName = getComponentName(ctor) || 'Component';
+  //     if (!didWarnAboutUninitializedState.has(componentName)) {
+  //       didWarnAboutUninitializedState.add(componentName);
+  //       warningWithoutStack(
+  //         false,
+  //         '`%s` uses `getDerivedStateFromProps` but its initial state is ' +
+  //           '%s. This is not recommended. Instead, define the initial state by ' +
+  //           'assigning an object to `this.state` in the constructor of `%s`. ' +
+  //           'This ensures that `getDerivedStateFromProps` arguments have a consistent shape.',
+  //         componentName,
+  //         instance.state === null ? 'null' : 'undefined',
+  //         componentName,
+  //       );
+  //     }
+  //   }
+  //   // 如果有新的生命周期函数，旧的就不会被调用，并且警告
+  //   // If new component APIs are defined, "unsafe" lifecycles won't be called.
+  //   // Warn about these lifecycles if they are present.
+  //   // Don't warn about react-lifecycles-compat polyfilled methods though.
+  //   if (
+  //     typeof ctor.getDerivedStateFromProps === 'function' ||
+  //     typeof instance.getSnapshotBeforeUpdate === 'function'
+  //   ) {
+  //     let foundWillMountName = null;
+  //     let foundWillReceivePropsName = null;
+  //     let foundWillUpdateName = null;
+  //     if (
+  //       typeof instance.componentWillMount === 'function' &&
+  //       instance.componentWillMount.__suppressDeprecationWarning !== true
+  //     ) {
+  //       foundWillMountName = 'componentWillMount';
+  //     } else if (typeof instance.UNSAFE_componentWillMount === 'function') {
+  //       foundWillMountName = 'UNSAFE_componentWillMount';
+  //     }
+  //     if (
+  //       typeof instance.componentWillReceiveProps === 'function' &&
+  //       instance.componentWillReceiveProps.__suppressDeprecationWarning !== true
+  //     ) {
+  //       foundWillReceivePropsName = 'componentWillReceiveProps';
+  //     } else if (
+  //       typeof instance.UNSAFE_componentWillReceiveProps === 'function'
+  //     ) {
+  //       foundWillReceivePropsName = 'UNSAFE_componentWillReceiveProps';
+  //     }
+  //     if (
+  //       typeof instance.componentWillUpdate === 'function' &&
+  //       instance.componentWillUpdate.__suppressDeprecationWarning !== true
+  //     ) {
+  //       foundWillUpdateName = 'componentWillUpdate';
+  //     } else if (typeof instance.UNSAFE_componentWillUpdate === 'function') {
+  //       foundWillUpdateName = 'UNSAFE_componentWillUpdate';
+  //     }
+  //     if (
+  //       foundWillMountName !== null ||
+  //       foundWillReceivePropsName !== null ||
+  //       foundWillUpdateName !== null
+  //     ) {
+  //       const componentName = getComponentName(ctor) || 'Component';
+  //       const newApiName =
+  //         typeof ctor.getDerivedStateFromProps === 'function'
+  //           ? 'getDerivedStateFromProps()'
+  //           : 'getSnapshotBeforeUpdate()';
+  //       if (!didWarnAboutLegacyLifecyclesAndDerivedState.has(componentName)) {
+  //         didWarnAboutLegacyLifecyclesAndDerivedState.add(componentName);
+  //         warningWithoutStack(
+  //           false,
+  //           'Unsafe legacy lifecycles will not be called for components using new component APIs.\n\n' +
+  //             '%s uses %s but also contains the following legacy lifecycles:%s%s%s\n\n' +
+  //             'The above lifecycles should be removed. Learn more about this warning here:\n' +
+  //             'https://fb.me/react-async-component-lifecycle-hooks',
+  //           componentName,
+  //           newApiName,
+  //           foundWillMountName !== null ? `\n  ${foundWillMountName}` : '',
+  //           foundWillReceivePropsName !== null
+  //             ? `\n  ${foundWillReceivePropsName}`
+  //             : '',
+  //           foundWillUpdateName !== null ? `\n  ${foundWillUpdateName}` : '',
+  //         );
+  //       }
+  //     }
+  //   }
+  // }
 
   // Cache unmasked context so we can avoid recreating masked context unless necessary.
   // ReactFiberContext usually updates this cache but can't for newly-created instances.
@@ -663,9 +663,9 @@ function mountClassInstance(
   newProps: any,
   renderExpirationTime: ExpirationTime,
 ): void {
-  if (__DEV__) {
-    checkClassInstance(workInProgress, ctor, newProps);
-  }
+  // if (__DEV__) {
+  //   checkClassInstance(workInProgress, ctor, newProps);
+  // }
 
   const instance = workInProgress.stateNode;
   const unmaskedContext = getUnmaskedContext(workInProgress, ctor, true);
@@ -675,40 +675,40 @@ function mountClassInstance(
   instance.refs = emptyRefsObject;
   instance.context = getMaskedContext(workInProgress, unmaskedContext);
 
-  if (__DEV__) {
-    if (instance.state === newProps) {
-      const componentName = getComponentName(ctor) || 'Component';
-      if (!didWarnAboutDirectlyAssigningPropsToState.has(componentName)) {
-        didWarnAboutDirectlyAssigningPropsToState.add(componentName);
-        warningWithoutStack(
-          false,
-          '%s: It is not recommended to assign props directly to state ' +
-            "because updates to props won't be reflected in state. " +
-            'In most cases, it is better to use props directly.',
-          componentName,
-        );
-      }
-    }
+  // if (__DEV__) {
+  //   if (instance.state === newProps) {
+  //     const componentName = getComponentName(ctor) || 'Component';
+  //     if (!didWarnAboutDirectlyAssigningPropsToState.has(componentName)) {
+  //       didWarnAboutDirectlyAssigningPropsToState.add(componentName);
+  //       warningWithoutStack(
+  //         false,
+  //         '%s: It is not recommended to assign props directly to state ' +
+  //           "because updates to props won't be reflected in state. " +
+  //           'In most cases, it is better to use props directly.',
+  //         componentName,
+  //       );
+  //     }
+  //   }
 
-    if (workInProgress.mode & StrictMode) {
-      ReactStrictModeWarnings.recordUnsafeLifecycleWarnings(
-        workInProgress,
-        instance,
-      );
+  //   if (workInProgress.mode & StrictMode) {
+  //     ReactStrictModeWarnings.recordUnsafeLifecycleWarnings(
+  //       workInProgress,
+  //       instance,
+  //     );
 
-      ReactStrictModeWarnings.recordLegacyContextWarning(
-        workInProgress,
-        instance,
-      );
-    }
+  //     ReactStrictModeWarnings.recordLegacyContextWarning(
+  //       workInProgress,
+  //       instance,
+  //     );
+  //   }
 
-    if (warnAboutDeprecatedLifecycles) {
-      ReactStrictModeWarnings.recordDeprecationWarnings(
-        workInProgress,
-        instance,
-      );
-    }
-  }
+  //   if (warnAboutDeprecatedLifecycles) {
+  //     ReactStrictModeWarnings.recordDeprecationWarnings(
+  //       workInProgress,
+  //       instance,
+  //     );
+  //   }
+  // }
 
   let updateQueue = workInProgress.updateQueue;
   if (updateQueue !== null) {

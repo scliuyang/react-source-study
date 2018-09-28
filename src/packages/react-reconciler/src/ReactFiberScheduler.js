@@ -361,7 +361,7 @@ if (__DEV__ && replayFailedUnitOfWorkWithInvokeGuardedCallback) {
     throw originalReplayError;
   };
 }
-
+// TODO: 这个栈是什么栈？
 function resetStack() {
   if (nextUnitOfWork !== null) {
     let interruptedWork = nextUnitOfWork.return;
@@ -371,10 +371,10 @@ function resetStack() {
     }
   }
 
-  if (__DEV__) {
-    ReactStrictModeWarnings.discardPendingWarnings();
-    checkThatStackIsEmpty();
-  }
+  // if (__DEV__) {
+  //   ReactStrictModeWarnings.discardPendingWarnings();
+  //   checkThatStackIsEmpty();
+  // }
 
   nextRoot = null;
   nextRenderExpirationTime = NoWork;
@@ -476,17 +476,17 @@ function commitAllLifeCycles(
   finishedRoot: FiberRoot,
   committedExpirationTime: ExpirationTime,
 ) {
-  if (__DEV__) {
-    ReactStrictModeWarnings.flushPendingUnsafeLifecycleWarnings();
+  // if (__DEV__) {
+  //   ReactStrictModeWarnings.flushPendingUnsafeLifecycleWarnings();
 
-    if (warnAboutDeprecatedLifecycles) {
-      ReactStrictModeWarnings.flushPendingDeprecationWarnings();
-    }
+  //   if (warnAboutDeprecatedLifecycles) {
+  //     ReactStrictModeWarnings.flushPendingDeprecationWarnings();
+  //   }
 
-    if (warnAboutLegacyContextAPI) {
-      ReactStrictModeWarnings.flushLegacyContextWarning();
-    }
-  }
+  //   if (warnAboutLegacyContextAPI) {
+  //     ReactStrictModeWarnings.flushLegacyContextWarning();
+  //   }
+  // }
   while (nextEffect !== null) {
     const effectTag = nextEffect.effectTag;
 
@@ -612,7 +612,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
     // There is no effect on the root.
     firstEffect = finishedWork.firstEffect;
   }
-
+  // 记录下当前select区域
   prepareForCommit(root.containerInfo);
 
   // Invoke instances of getSnapshotBeforeUpdate before mutation.
@@ -901,15 +901,16 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber | null {
   // Attempt to complete the current unit of work, then move to the
   // next sibling. If there are no more siblings, return to the
   // parent fiber.
+  // 理论来说应该是从最深处的子->兄->父这样的顺序
   while (true) {
     // The current, flushed, state of this fiber is the alternate.
     // Ideally nothing should rely on this, but relying on it here
     // means that we don't need an additional field on the work in
     // progress.
     const current = workInProgress.alternate;
-    if (__DEV__) {
-      ReactCurrentFiber.setCurrentFiber(workInProgress);
-    }
+    // if (__DEV__) {
+    //   ReactCurrentFiber.setCurrentFiber(workInProgress);
+    // }
 
     const returnFiber = workInProgress.return;
     const siblingFiber = workInProgress.sibling;
@@ -1093,17 +1094,18 @@ function performUnitOfWork(workInProgress: Fiber): Fiber | null {
   const current = workInProgress.alternate;
 
   // See if beginning this work spawns more work.
+  // 忽略
   startWorkTimer(workInProgress);
-  if (__DEV__) {
-    ReactCurrentFiber.setCurrentFiber(workInProgress);
-  }
+  // if (__DEV__) {
+  //   ReactCurrentFiber.setCurrentFiber(workInProgress);
+  // }
 
-  if (__DEV__ && replayFailedUnitOfWorkWithInvokeGuardedCallback) {
-    stashedWorkInProgressProperties = assignFiberPropertiesInDEV(
-      stashedWorkInProgressProperties,
-      workInProgress,
-    );
-  }
+  // if (__DEV__ && replayFailedUnitOfWorkWithInvokeGuardedCallback) {
+  //   stashedWorkInProgressProperties = assignFiberPropertiesInDEV(
+  //     stashedWorkInProgressProperties,
+  //     workInProgress,
+  //   );
+  // }
 
   let next;
   if (enableProfilerTimer) {
@@ -1121,19 +1123,19 @@ function performUnitOfWork(workInProgress: Fiber): Fiber | null {
     next = beginWork(current, workInProgress, nextRenderExpirationTime);
   }
 
-  if (__DEV__) {
-    ReactCurrentFiber.resetCurrentFiber();
-    if (isReplayingFailedUnitOfWork) {
-      // Currently replaying a failed unit of work. This should be unreachable,
-      // because the render phase is meant to be idempotent, and it should
-      // have thrown again. Since it didn't, rethrow the original error, so
-      // React's internal stack is not misaligned.
-      rethrowOriginalError();
-    }
-  }
-  if (__DEV__ && ReactFiberInstrumentation.debugTool) {
-    ReactFiberInstrumentation.debugTool.onBeginWork(workInProgress);
-  }
+  // if (__DEV__) {
+  //   ReactCurrentFiber.resetCurrentFiber();
+  //   if (isReplayingFailedUnitOfWork) {
+  //     // Currently replaying a failed unit of work. This should be unreachable,
+  //     // because the render phase is meant to be idempotent, and it should
+  //     // have thrown again. Since it didn't, rethrow the original error, so
+  //     // React's internal stack is not misaligned.
+  //     rethrowOriginalError();
+  //   }
+  // }
+  // if (__DEV__ && ReactFiberInstrumentation.debugTool) {
+  //   ReactFiberInstrumentation.debugTool.onBeginWork(workInProgress);
+  // }
 
   if (next === null) {
     // If this doesn't spawn new work, complete the current work.
@@ -1245,7 +1247,7 @@ function renderRoot(
   }
 
   let didFatal = false;
-
+  // 性能分析用，忽略
   startWorkLoopTimer(nextUnitOfWork);
 
   do {
@@ -1724,26 +1726,27 @@ function storeInteractionsForExpirationTime(
 }
 
 function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
+  // debug性能记录，忽略
   recordScheduleUpdate();
 
-  if (__DEV__) {
-    if (fiber.tag === ClassComponent || fiber.tag === ClassComponentLazy) {
-      const instance = fiber.stateNode;
-      warnAboutInvalidUpdates(instance);
-    }
-  }
-
+  // if (__DEV__) {
+  //   if (fiber.tag === ClassComponent || fiber.tag === ClassComponentLazy) {
+  //     const instance = fiber.stateNode;
+  //     warnAboutInvalidUpdates(instance);
+  //   }
+  // }
+  // 貌似更新了下 fiber和其父的expirationTime
   const root = scheduleWorkToRoot(fiber, expirationTime);
   if (root === null) {
-    if (
-      __DEV__ &&
-      (fiber.tag === ClassComponent || fiber.tag === ClassComponentLazy)
-    ) {
-      warnAboutUpdateOnUnmounted(fiber);
-    }
+    // if (
+    //   __DEV__ &&
+    //   (fiber.tag === ClassComponent || fiber.tag === ClassComponentLazy)
+    // ) {
+    //   warnAboutUpdateOnUnmounted(fiber);
+    // }
     return;
   }
-
+  //   __PROFILE__ 忽略
   if (enableSchedulerTracing) {
     storeInteractionsForExpirationTime(root, expirationTime, true);
   }
@@ -2271,6 +2274,7 @@ function performWorkOnRoot(
   isRendering = true;
 
   // Check if this is async work or sync/expired work.
+  // TODO: expired work是啥意思啊,期望快点完成么
   if (deadline === null || isExpired) {
     // Flush work without yielding.
     // TODO: Non-yieldy work does not necessarily imply expired work. A renderer

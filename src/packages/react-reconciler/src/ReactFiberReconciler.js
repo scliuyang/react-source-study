@@ -118,23 +118,23 @@ function scheduleRootUpdate(
   expirationTime: ExpirationTime,
   callback: ?Function,
 ) {
-  if (__DEV__) {
-    if (
-      ReactCurrentFiber.phase === 'render' &&
-      ReactCurrentFiber.current !== null &&
-      !didWarnAboutNestedUpdates
-    ) {
-      didWarnAboutNestedUpdates = true;
-      warningWithoutStack(
-        false,
-        'Render methods should be a pure function of props and state; ' +
-          'triggering nested component updates from render is not allowed. ' +
-          'If necessary, trigger nested updates in componentDidUpdate.\n\n' +
-          'Check the render method of %s.',
-        getComponentName(ReactCurrentFiber.current.type) || 'Unknown',
-      );
-    }
-  }
+  // if (__DEV__) {
+  //   if (
+  //     ReactCurrentFiber.phase === 'render' &&
+  //     ReactCurrentFiber.current !== null &&
+  //     !didWarnAboutNestedUpdates
+  //   ) {
+  //     didWarnAboutNestedUpdates = true;
+  //     warningWithoutStack(
+  //       false,
+  //       'Render methods should be a pure function of props and state; ' +
+  //         'triggering nested component updates from render is not allowed. ' +
+  //         'If necessary, trigger nested updates in componentDidUpdate.\n\n' +
+  //         'Check the render method of %s.',
+  //       getComponentName(ReactCurrentFiber.current.type) || 'Unknown',
+  //     );
+  //   }
+  // }
 
   const update = createUpdate(expirationTime);
   // Caution: React DevTools currently depends on this property
@@ -151,6 +151,7 @@ function scheduleRootUpdate(
     );
     update.callback = callback;
   }
+  // 产生任务队列，挂载在current.updateQueue
   enqueueUpdate(current, update);
 
   scheduleWork(current, expirationTime);
@@ -167,18 +168,18 @@ export function updateContainerAtExpirationTime(
   // TODO: If this is a nested container, this won't be the root.
   const current = container.current;
 
-  if (__DEV__) {
-    if (ReactFiberInstrumentation.debugTool) {
-      if (current.alternate === null) {
-        ReactFiberInstrumentation.debugTool.onMountContainer(container);
-      } else if (element === null) {
-        ReactFiberInstrumentation.debugTool.onUnmountContainer(container);
-      } else {
-        ReactFiberInstrumentation.debugTool.onUpdateContainer(container);
-      }
-    }
-  }
-
+  // if (__DEV__) {
+  //   if (ReactFiberInstrumentation.debugTool) {
+  //     if (current.alternate === null) {
+  //       ReactFiberInstrumentation.debugTool.onMountContainer(container);
+  //     } else if (element === null) {
+  //       ReactFiberInstrumentation.debugTool.onUnmountContainer(container);
+  //     } else {
+  //       ReactFiberInstrumentation.debugTool.onUpdateContainer(container);
+  //     }
+  //   }
+  // }
+  // 他们说context是栈结构
   const context = getContextForSubtree(parentComponent);
   if (container.context === null) {
     container.context = context;
@@ -224,7 +225,10 @@ export function updateContainer(
   callback: ?Function,
 ): ExpirationTime {
   const current = container.current;
+  // 这里貌似产生的是调度时间,同一批次的任务强调保证调度时间一致
   const currentTime = requestCurrentTime();
+  // 返回同步任务 ReactFiberExpirationTime->Sync
+  // TODO: 干嘛的。。。
   const expirationTime = computeExpirationForFiber(currentTime, current);
   return updateContainerAtExpirationTime(
     element,
