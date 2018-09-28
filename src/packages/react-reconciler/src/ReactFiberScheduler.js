@@ -942,15 +942,15 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber | null {
       let next = nextUnitOfWork;
       stopWorkTimer(workInProgress);
       resetChildExpirationTime(workInProgress, nextRenderExpirationTime);
-      if (__DEV__) {
-        ReactCurrentFiber.resetCurrentFiber();
-      }
+      // if (__DEV__) {
+      //   ReactCurrentFiber.resetCurrentFiber();
+      // }
 
       if (next !== null) {
         stopWorkTimer(workInProgress);
-        if (__DEV__ && ReactFiberInstrumentation.debugTool) {
-          ReactFiberInstrumentation.debugTool.onCompleteWork(workInProgress);
-        }
+        // if (__DEV__ && ReactFiberInstrumentation.debugTool) {
+        //   ReactFiberInstrumentation.debugTool.onCompleteWork(workInProgress);
+        // }
         // If completing this work spawned new work, do that next. We'll come
         // back here again.
         return next;
@@ -993,9 +993,9 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber | null {
         }
       }
 
-      if (__DEV__ && ReactFiberInstrumentation.debugTool) {
-        ReactFiberInstrumentation.debugTool.onCompleteWork(workInProgress);
-      }
+      // if (__DEV__ && ReactFiberInstrumentation.debugTool) {
+      //   ReactFiberInstrumentation.debugTool.onCompleteWork(workInProgress);
+      // }
 
       if (siblingFiber !== null) {
         // If there is more work to do in this returnFiber, do that next.
@@ -1760,6 +1760,7 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
     interruptedBy = fiber;
     resetStack();
   }
+  // TODO: 这里没怎么搞懂
   markPendingPriorityLevel(root, expirationTime);
   if (
     // If we're in the render phase, we don't need to schedule this root

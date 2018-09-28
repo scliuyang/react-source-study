@@ -8,13 +8,14 @@ import './App.css';
 class App extends Component {
   state = {
     number: 1,
+    text: 2,
   };
 
   static getDerivedStateFromProps(props, state) {
     console.log('getDerivedStateFromProps');
-    return {
-      number: props.number,
-    };
+    // return {
+    //   number: props.number,
+    // };
   }
 
   shouldComponentUpdate() {
@@ -22,7 +23,7 @@ class App extends Component {
     return true;
   }
 
-  static getSnapshotBeforeUpdate() {
+  getSnapshotBeforeUpdate() {
     console.log('getSnapshotBeforeUpdate');
   }
 
@@ -35,9 +36,22 @@ class App extends Component {
   }
 
   onClick = () => {
-    this.setState({
-      number: this.state.number + 1,
-    });
+    this.setState(
+      {
+        number: this.state.number + 1,
+      },
+      () => {
+        console.log(JSON.stringify(this.state));
+      },
+    );
+    this.setState(
+      {
+        text: this.state.text + 2,
+      },
+      (state) => {
+        console.log(JSON.stringify(this.state));
+      },
+    );
   };
 
   render() {

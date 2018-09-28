@@ -604,7 +604,7 @@ export function commitUpdateQueue<State>(
   commitUpdateEffects(finishedQueue.firstCapturedEffect, instance);
   finishedQueue.firstCapturedEffect = finishedQueue.lastCapturedEffect = null;
 }
-
+// 触发setState callback
 function commitUpdateEffects<State>(
   effect: Update<State> | null,
   instance: any,
