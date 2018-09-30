@@ -227,8 +227,7 @@ export function updateContainer(
   const current = container.current;
   // 这里貌似产生的是调度时间,同一批次的任务强调保证调度时间一致
   const currentTime = requestCurrentTime();
-  // 返回同步任务 ReactFiberExpirationTime->Sync
-  // TODO: 干嘛的。。。
+  // 返回同步任务优先级ReactFiberExpirationTime->Sync
   const expirationTime = computeExpirationForFiber(currentTime, current);
   return updateContainerAtExpirationTime(
     element,

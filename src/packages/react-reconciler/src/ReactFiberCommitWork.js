@@ -265,10 +265,12 @@ function commitLifeCycles(
           stopPhaseTimer();
         }
       }
+    
       const updateQueue = finishedWork.updateQueue;
       if (updateQueue !== null) {
         instance.props = finishedWork.memoizedProps;
         instance.state = finishedWork.memoizedState;
+        // 触发回调
         commitUpdateQueue(
           finishedWork,
           updateQueue,

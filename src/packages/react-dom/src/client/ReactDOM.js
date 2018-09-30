@@ -514,7 +514,8 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
-    // 似乎是初始化挂载，但不真正的反应到dom上
+    // 打开非批量更新开关isUnbatchingUpdates
+    // 执行reconciler->commit
     DOMRenderer.unbatchedUpdates(() => {
       if (parentComponent != null) {
         root.legacy_renderSubtreeIntoContainer(parentComponent, children, callback);
@@ -569,8 +570,8 @@ const ReactDOM: Object = {
     if (componentOrElement == null) {
       return null;
     }
-    if ((componentOrElement: any).nodeType === ELEMENT_NODE) {
-      return (componentOrElement: any);
+    if ((componentOrElement).nodeType === ELEMENT_NODE) {
+      return (componentOrElement);
     }
 
     return DOMRenderer.findHostInstance(componentOrElement);

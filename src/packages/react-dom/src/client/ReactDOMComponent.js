@@ -619,7 +619,7 @@ export function diffProperties(
         typeof nextProps.onClick === 'function'
       ) {
         // TODO: This cast may not be sound for SVG, MathML or custom elements.
-        trapClickOnNonInteractiveElement(((domElement: any): HTMLElement));
+        trapClickOnNonInteractiveElement(((domElement): HTMLElement));
       }
       break;
   }
@@ -629,6 +629,7 @@ export function diffProperties(
   let propKey;
   let styleName;
   let styleUpdates = null;
+  // 只处理，新添加的props
   for (propKey in lastProps) {
     if (
       nextProps.hasOwnProperty(propKey) ||

@@ -32,7 +32,7 @@ export function markPendingPriorityLevel(
     root.earliestPendingTime = root.latestPendingTime = expirationTime;
   } else {
     if (earliestPendingTime > expirationTime) {
-      // This is the earliest pending update.
+      // This is the earliest pending update. 
       root.earliestPendingTime = expirationTime;
     } else {
       const latestPendingTime = root.latestPendingTime;

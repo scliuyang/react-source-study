@@ -9,6 +9,9 @@ class App extends Component {
   state = {
     number: 1,
     text: 2,
+    obj: {
+      t: 1,
+    },
   };
 
   static getDerivedStateFromProps(props, state) {
@@ -29,16 +32,27 @@ class App extends Component {
 
   componentDidMount() {
     console.log('componentDidMount');
+    this.setState({
+      number: 2,
+    });
+    // console.log(this.state.number);
+
+    // this.setState({
+    //   number: 3,
+    // });
   }
 
   componentDidUpdate() {
-    console.log('componentDidMount');
+    console.log('componentDidUpdate');
+    
   }
 
   onClick = () => {
+    this.state.obj.t = 2;
     this.setState(
       {
         number: this.state.number + 1,
+        obj: this.state.obj,
       },
       () => {
         console.log(JSON.stringify(this.state));
@@ -55,9 +69,12 @@ class App extends Component {
   };
 
   render() {
+    console.log('render');
+    
     return (
       <div className="App">
-        <span>{this.state.number}</span>
+        <span test={this.state.obj}>{this.state.number}</span>
+        <input value={this.state.number} />
         <button onClick={this.onClick}>click</button>
       </div>
     );

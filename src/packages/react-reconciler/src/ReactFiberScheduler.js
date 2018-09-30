@@ -565,10 +565,10 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
       : updateExpirationTimeBeforeCommit;
   markCommittedPriorityLevels(root, earliestRemainingTimeBeforeCommit);
 
-  let prevInteractions: Set<Interaction> = (null: any);
+  let prevInteractions: Set<Interaction> = null;
   let committedInteractions: Array<Interaction> = enableSchedulerTracing
     ? []
-    : (null: any);
+    : null;
   if (enableSchedulerTracing) {
     // Restore any pending interactions at this point,
     // So that cascading work triggered during the render phase will be accounted for.
@@ -1632,6 +1632,13 @@ function retrySuspendedRoot(
   }
 }
 
+/**
+ * 如果当前fiber nowork或者优先级过高，更新优先级。
+ * 并且将所有的父节点的childExpirationTime更新为当前优先级
+ * 返回根节点的vdom
+ * @param {*} fiber 
+ * @param {*} expirationTime 
+ */
 function scheduleWorkToRoot(fiber: Fiber, expirationTime): FiberRoot | null {
   // Update the source fiber's expiration time
   if (
@@ -1751,6 +1758,8 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
     storeInteractionsForExpirationTime(root, expirationTime, true);
   }
 
+  // 这里判断下当前work的优先级和下一个work的优先级
+  // 如果当前的优先级比较低，则表明当前work打断了任务,记录一下方便恢复
   if (
     !isWorking &&
     nextRenderExpirationTime !== NoWork &&
@@ -1761,6 +1770,7 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
     resetStack();
   }
   // TODO: 这里没怎么搞懂
+  // 貌似是寻找当前根节点当中最高的优先级,暂时不知用处
   markPendingPriorityLevel(root, expirationTime);
   if (
     // If we're in the render phase, we don't need to schedule this root
@@ -2002,17 +2012,23 @@ function requestCurrentTime() {
 
 // requestWork is called by the scheduler whenever a root receives an update.
 // It's up to the renderer to call renderRoot at some point in the future.
+/**
+ * 请求任务，通常是render或者update阶段调用(isBatchingUpdates会在react事件阶段开启，比如onClick)
+ */
 function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
   addRootToSchedule(root, expirationTime);
   if (isRendering) {
+    // 有更新任务的话只插入队列，不执行
     // Prevent reentrancy. Remaining work will be scheduled at the end of
     // the currently rendering batch.
     return;
   }
 
   if (isBatchingUpdates) {
+    // 批量更新，不perform work等任务完成后，统一调用performSyncWork
     // Flush work at the end of the batch.
     if (isUnbatchingUpdates) {
+      // TODO: 什么情况下这两个开关都会打开呢？
       // ...unless we're inside unbatchedUpdates, in which case we should
       // flush it now.
       nextFlushedRoot = root;
@@ -2057,6 +2073,11 @@ function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
   }
 }
 
+/**
+ * 请求最高优先级的root
+ * xxxxxxx同步阶段一辈子都用不到，估计是多次调用ReactDom.render才行xxxxxxx
+ * 当在生命周期阶段调用setState的时候就会将root.expirationTime=1，所以还需要再处理一次当前root
+ */
 function findHighestPriorityRoot() {
   let highestPriorityWork = NoWork;
   let highestPriorityRoot = null;
@@ -2430,6 +2451,11 @@ function batchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
 
 // TODO: Batching should be implemented at the renderer level, not inside
 // the reconciler.
+/**
+ * 就是确保isUnbatchingUpdates=true
+ * @param {*} fn 
+ * @param {*} a 
+ */
 function unbatchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
   if (isBatchingUpdates && !isUnbatchingUpdates) {
     isUnbatchingUpdates = true;

@@ -57,7 +57,7 @@ function isControlled(props) {
  */
 
 export function getHostProps(element: Element, props: Object) {
-  const node = ((element: any): InputWithWrapperState);
+  const node = ((element): InputWithWrapperState);
   const checked = props.checked;
 
   const hostProps = Object.assign({}, props, {
