@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "target": "es6",
     "baseUrl": ".",
     "paths": {
-      "*": ["./src/packages/"]
+      "*": ["./packages"]
     }
   },
   "exclude": ["node_modules"]
