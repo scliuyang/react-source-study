@@ -580,7 +580,10 @@ function isHostParent(fiber: Fiber): boolean {
     fiber.tag === HostPortal
   );
 }
-
+/**
+ * 寻找到右边的第一个dom或者text节点，并且节点effectTag不包含Placement
+ * @param {*} fiber 
+ */
 function getHostSibling(fiber: Fiber): ?Instance {
   // We're going to search forward into the tree until we find a sibling host
   // node. Unfortunately, if multiple insertions are done in a row we have to

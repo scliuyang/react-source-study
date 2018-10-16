@@ -345,6 +345,7 @@ function getStateFromUpdate<State>(
 ): any {
   switch (update.tag) {
     case ReplaceState: {
+      // 这里基本上不会触发咯，应该会随旧生命周期移除一起干掉
       const payload = update.payload;
       if (typeof payload === 'function') {
         // Updater function
@@ -368,6 +369,7 @@ function getStateFromUpdate<State>(
     }
     // Intentional fallthrough
     case UpdateState: {
+      // 更新任务
       const payload = update.payload;
       let partialState;
       if (typeof payload === 'function') {
@@ -400,7 +402,14 @@ function getStateFromUpdate<State>(
   }
   return prevState;
 }
-
+/**
+ * 
+ * @param {*} workInProgress 
+ * @param {*} queue 
+ * @param {*} props 
+ * @param {*} instance 
+ * @param {*} renderExpirationTime 
+ */
 export function processUpdateQueue<State>(
   workInProgress: Fiber,
   queue: UpdateQueue<State>,
@@ -526,6 +535,7 @@ export function processUpdateQueue<State>(
     update = update.next;
   }
 
+  // 同步更新的话，这里一定是null，证明队列已经处理完了
   if (newFirstUpdate === null) {
     queue.lastUpdate = null;
   }

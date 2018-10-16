@@ -49,75 +49,75 @@ let topLevelUpdateWarnings;
 let warnOnInvalidCallback;
 let didWarnAboutUnstableCreatePortal = false;
 
-if (__DEV__) {
-  if (
-    typeof Map !== 'function' ||
-    // $FlowIssue Flow incorrectly thinks Map has no prototype
-    Map.prototype == null ||
-    typeof Map.prototype.forEach !== 'function' ||
-    typeof Set !== 'function' ||
-    // $FlowIssue Flow incorrectly thinks Set has no prototype
-    Set.prototype == null ||
-    typeof Set.prototype.clear !== 'function' ||
-    typeof Set.prototype.forEach !== 'function'
-  ) {
-    warningWithoutStack(
-      false,
-      'React depends on Map and Set built-in types. Make sure that you load a ' +
-        'polyfill in older browsers. https://fb.me/react-polyfills',
-    );
-  }
+// if (__DEV__) {
+//   if (
+//     typeof Map !== 'function' ||
+//     // $FlowIssue Flow incorrectly thinks Map has no prototype
+//     Map.prototype == null ||
+//     typeof Map.prototype.forEach !== 'function' ||
+//     typeof Set !== 'function' ||
+//     // $FlowIssue Flow incorrectly thinks Set has no prototype
+//     Set.prototype == null ||
+//     typeof Set.prototype.clear !== 'function' ||
+//     typeof Set.prototype.forEach !== 'function'
+//   ) {
+//     warningWithoutStack(
+//       false,
+//       'React depends on Map and Set built-in types. Make sure that you load a ' +
+//         'polyfill in older browsers. https://fb.me/react-polyfills',
+//     );
+//   }
 
-  topLevelUpdateWarnings = (container: DOMContainer) => {
-    if (container._reactRootContainer && container.nodeType !== COMMENT_NODE) {
-      const hostInstance = DOMRenderer.findHostInstanceWithNoPortals(
-        container._reactRootContainer._internalRoot.current,
-      );
-      if (hostInstance) {
-        warningWithoutStack(
-          hostInstance.parentNode === container,
-          'render(...): It looks like the React-rendered content of this ' +
-            'container was removed without using React. This is not ' +
-            'supported and will cause errors. Instead, call ' +
-            'ReactDOM.unmountComponentAtNode to empty a container.',
-        );
-      }
-    }
+//   topLevelUpdateWarnings = (container: DOMContainer) => {
+//     if (container._reactRootContainer && container.nodeType !== COMMENT_NODE) {
+//       const hostInstance = DOMRenderer.findHostInstanceWithNoPortals(
+//         container._reactRootContainer._internalRoot.current,
+//       );
+//       if (hostInstance) {
+//         warningWithoutStack(
+//           hostInstance.parentNode === container,
+//           'render(...): It looks like the React-rendered content of this ' +
+//             'container was removed without using React. This is not ' +
+//             'supported and will cause errors. Instead, call ' +
+//             'ReactDOM.unmountComponentAtNode to empty a container.',
+//         );
+//       }
+//     }
 
-    const isRootRenderedBySomeReact = !!container._reactRootContainer;
-    const rootEl = getReactRootElementInContainer(container);
-    const hasNonRootReactChild = !!(rootEl && ReactDOMComponentTree.getInstanceFromNode(rootEl));
+//     const isRootRenderedBySomeReact = !!container._reactRootContainer;
+//     const rootEl = getReactRootElementInContainer(container);
+//     const hasNonRootReactChild = !!(rootEl && ReactDOMComponentTree.getInstanceFromNode(rootEl));
 
-    warningWithoutStack(
-      !hasNonRootReactChild || isRootRenderedBySomeReact,
-      'render(...): Replacing React-rendered children with a new root ' +
-        'component. If you intended to update the children of this node, ' +
-        'you should instead have the existing children update their state ' +
-        'and render the new components instead of calling ReactDOM.render.',
-    );
+//     warningWithoutStack(
+//       !hasNonRootReactChild || isRootRenderedBySomeReact,
+//       'render(...): Replacing React-rendered children with a new root ' +
+//         'component. If you intended to update the children of this node, ' +
+//         'you should instead have the existing children update their state ' +
+//         'and render the new components instead of calling ReactDOM.render.',
+//     );
 
-    warningWithoutStack(
-      container.nodeType !== ELEMENT_NODE ||
-        !((container: any): Element).tagName ||
-        ((container: any): Element).tagName.toUpperCase() !== 'BODY',
-      'render(): Rendering components directly into document.body is ' +
-        'discouraged, since its children are often manipulated by third-party ' +
-        'scripts and browser extensions. This may lead to subtle ' +
-        'reconciliation issues. Try rendering into a container element created ' +
-        'for your app.',
-    );
-  };
+//     warningWithoutStack(
+//       container.nodeType !== ELEMENT_NODE ||
+//         !((container: any): Element).tagName ||
+//         ((container: any): Element).tagName.toUpperCase() !== 'BODY',
+//       'render(): Rendering components directly into document.body is ' +
+//         'discouraged, since its children are often manipulated by third-party ' +
+//         'scripts and browser extensions. This may lead to subtle ' +
+//         'reconciliation issues. Try rendering into a container element created ' +
+//         'for your app.',
+//     );
+//   };
 
-  warnOnInvalidCallback = function(callback: mixed, callerName: string) {
-    warningWithoutStack(
-      callback === null || typeof callback === 'function',
-      '%s(...): Expected the last optional `callback` argument to be a ' +
-        'function. Instead received: %s.',
-      callerName,
-      callback,
-    );
-  };
-}
+//   warnOnInvalidCallback = function(callback: mixed, callerName: string) {
+//     warningWithoutStack(
+//       callback === null || typeof callback === 'function',
+//       '%s(...): Expected the last optional `callback` argument to be a ' +
+//         'function. Instead received: %s.',
+//       callerName,
+//       callback,
+//     );
+//   };
+// }
 
 ReactControlledComponent.setRestoreImplementation(restoreControlledState);
 

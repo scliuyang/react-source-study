@@ -7,26 +7,26 @@
  * @flow
  */
 
-import type {Fiber} from './ReactFiber';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
+import type { Fiber } from './ReactFiber';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
 
 import React from 'react';
-import {Update, Snapshot} from 'shared/ReactSideEffectTags';
+import { Update, Snapshot } from 'shared/ReactSideEffectTags';
 import {
   debugRenderPhaseSideEffects,
   debugRenderPhaseSideEffectsForStrictMode,
   warnAboutDeprecatedLifecycles,
 } from 'shared/ReactFeatureFlags';
 import ReactStrictModeWarnings from './ReactStrictModeWarnings';
-import {isMounted} from 'react-reconciler/reflection';
+import { isMounted } from 'react-reconciler/reflection';
 import * as ReactInstanceMap from 'shared/ReactInstanceMap';
 import shallowEqual from 'shared/shallowEqual';
 import getComponentName from 'shared/getComponentName';
 import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
 
-import {startPhaseTimer, stopPhaseTimer} from './ReactDebugFiberPerf';
-import {StrictMode} from './ReactTypeOfMode';
+import { startPhaseTimer, stopPhaseTimer } from './ReactDebugFiberPerf';
+import { StrictMode } from './ReactTypeOfMode';
 import {
   enqueueUpdate,
   processUpdateQueue,
@@ -36,7 +36,7 @@ import {
   ReplaceState,
   ForceUpdate,
 } from './ReactUpdateQueue';
-import {NoWork} from './ReactFiberExpirationTime';
+import { NoWork } from './ReactFiberExpirationTime';
 import {
   cacheContext,
   getMaskedContext,
@@ -44,11 +44,7 @@ import {
   hasContextChanged,
   emptyContextObject,
 } from './ReactFiberContext';
-import {
-  requestCurrentTime,
-  computeExpirationForFiber,
-  scheduleWork,
-} from './ReactFiberScheduler';
+import { requestCurrentTime, computeExpirationForFiber, scheduleWork } from './ReactFiberScheduler';
 
 const fakeInternalInstance = {};
 const isArray = Array.isArray;
@@ -80,7 +76,7 @@ if (__DEV__) {
     if (callback === null || typeof callback === 'function') {
       return;
     }
-    const key = `${callerName}_${(callback)}`;
+    const key = `${callerName}_${callback}`;
     if (!didWarnOnInvalidCallback.has(key)) {
       didWarnOnInvalidCallback.add(key);
       warningWithoutStack(
@@ -141,8 +137,7 @@ export function applyDerivedStateFromProps(
   if (__DEV__) {
     if (
       debugRenderPhaseSideEffects ||
-      (debugRenderPhaseSideEffectsForStrictMode &&
-        workInProgress.mode & StrictMode)
+      (debugRenderPhaseSideEffectsForStrictMode && workInProgress.mode & StrictMode)
     ) {
       // Invoke the function an extra time to help detect side-effects.
       getDerivedStateFromProps(nextProps, prevState);
@@ -239,11 +234,7 @@ function checkShouldComponentUpdate(
   const instance = workInProgress.stateNode;
   if (typeof instance.shouldComponentUpdate === 'function') {
     startPhaseTimer(workInProgress, 'shouldComponentUpdate');
-    const shouldUpdate = instance.shouldComponentUpdate(
-      newProps,
-      newState,
-      nextLegacyContext,
-    );
+    const shouldUpdate = instance.shouldComponentUpdate(newProps, newState, nextLegacyContext);
     stopPhaseTimer();
 
     if (__DEV__) {
@@ -259,9 +250,7 @@ function checkShouldComponentUpdate(
   }
 
   if (ctor.prototype && ctor.prototype.isPureReactComponent) {
-    return (
-      !shallowEqual(oldProps, newProps) || !shallowEqual(oldState, newState)
-    );
+    return !shallowEqual(oldProps, newProps) || !shallowEqual(oldState, newState);
   }
 
   return true;
@@ -292,9 +281,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     }
 
     const noGetInitialStateOnES6 =
-      !instance.getInitialState ||
-      instance.getInitialState.isReactClassApproved ||
-      instance.state;
+      !instance.getInitialState || instance.getInitialState.isReactClassApproved || instance.state;
     warningWithoutStack(
       noGetInitialStateOnES6,
       'getInitialState was defined on %s, a plain JavaScript class. ' +
@@ -303,8 +290,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
       name,
     );
     const noGetDefaultPropsOnES6 =
-      !instance.getDefaultProps ||
-      instance.getDefaultProps.isReactClassApproved;
+      !instance.getDefaultProps || instance.getDefaultProps.isReactClassApproved;
     warningWithoutStack(
       noGetDefaultPropsOnES6,
       'getDefaultProps was defined on %s, a plain JavaScript class. ' +
@@ -326,8 +312,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
         'property to define contextTypes instead.',
       name,
     );
-    const noComponentShouldUpdate =
-      typeof instance.componentShouldUpdate !== 'function';
+    const noComponentShouldUpdate = typeof instance.componentShouldUpdate !== 'function';
     warningWithoutStack(
       noComponentShouldUpdate,
       '%s has a method called ' +
@@ -349,8 +334,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
         getComponentName(ctor) || 'A pure component',
       );
     }
-    const noComponentDidUnmount =
-      typeof instance.componentDidUnmount !== 'function';
+    const noComponentDidUnmount = typeof instance.componentDidUnmount !== 'function';
     warningWithoutStack(
       noComponentDidUnmount,
       '%s has a method called ' +
@@ -358,8 +342,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
         'Did you mean componentWillUnmount()?',
       name,
     );
-    const noComponentDidReceiveProps =
-      typeof instance.componentDidReceiveProps !== 'function';
+    const noComponentDidReceiveProps = typeof instance.componentDidReceiveProps !== 'function';
     warningWithoutStack(
       noComponentDidReceiveProps,
       '%s has a method called ' +
@@ -369,8 +352,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
         'run side-effects or mutations after React has updated the UI, use componentDidUpdate().',
       name,
     );
-    const noComponentWillRecieveProps =
-      typeof instance.componentWillRecieveProps !== 'function';
+    const noComponentWillRecieveProps = typeof instance.componentWillRecieveProps !== 'function';
     warningWithoutStack(
       noComponentWillRecieveProps,
       '%s has a method called ' +
@@ -432,8 +414,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
         'and will be ignored. Instead, declare it as a static method.',
       name,
     );
-    const noStaticGetSnapshotBeforeUpdate =
-      typeof ctor.getSnapshotBeforeUpdate !== 'function';
+    const noStaticGetSnapshotBeforeUpdate = typeof ctor.getSnapshotBeforeUpdate !== 'function';
     warningWithoutStack(
       noStaticGetSnapshotBeforeUpdate,
       '%s: getSnapshotBeforeUpdate() is defined as a static method ' +
@@ -442,11 +423,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     );
     const state = instance.state;
     if (state && (typeof state !== 'object' || isArray(state))) {
-      warningWithoutStack(
-        false,
-        '%s.state: must be set to an object or null',
-        name,
-      );
+      warningWithoutStack(false, '%s.state: must be set to an object or null', name);
     }
     if (typeof instance.getChildContext === 'function') {
       warningWithoutStack(
@@ -495,9 +472,7 @@ function constructClassInstance(
 
   const instance = new ctor(props, context);
   const state = (workInProgress.memoizedState =
-    instance.state !== null && instance.state !== undefined
-      ? instance.state
-      : null);
+    instance.state !== null && instance.state !== undefined ? instance.state : null);
   adoptClassInstance(workInProgress, instance);
 
   // if (__DEV__) {
@@ -621,12 +596,7 @@ function callComponentWillMount(workInProgress, instance) {
   }
 }
 
-function callComponentWillReceiveProps(
-  workInProgress,
-  instance,
-  newProps,
-  nextLegacyContext,
-) {
+function callComponentWillReceiveProps(workInProgress, instance, newProps, nextLegacyContext) {
   const oldState = instance.state;
   startPhaseTimer(workInProgress, 'componentWillReceiveProps');
   if (typeof instance.componentWillReceiveProps === 'function') {
@@ -639,8 +609,7 @@ function callComponentWillReceiveProps(
 
   if (instance.state !== oldState) {
     if (__DEV__) {
-      const componentName =
-        getComponentName(workInProgress.type) || 'Component';
+      const componentName = getComponentName(workInProgress.type) || 'Component';
       if (!didWarnAboutStateAssignmentForComponent.has(componentName)) {
         didWarnAboutStateAssignmentForComponent.add(componentName);
         warningWithoutStack(
@@ -712,24 +681,13 @@ function mountClassInstance(
 
   let updateQueue = workInProgress.updateQueue;
   if (updateQueue !== null) {
-    processUpdateQueue(
-      workInProgress,
-      updateQueue,
-      newProps,
-      instance,
-      renderExpirationTime,
-    );
+    processUpdateQueue(workInProgress, updateQueue, newProps, instance, renderExpirationTime);
     instance.state = workInProgress.memoizedState;
   }
 
   const getDerivedStateFromProps = ctor.getDerivedStateFromProps;
   if (typeof getDerivedStateFromProps === 'function') {
-    applyDerivedStateFromProps(
-      workInProgress,
-      ctor,
-      getDerivedStateFromProps,
-      newProps,
-    );
+    applyDerivedStateFromProps(workInProgress, ctor, getDerivedStateFromProps, newProps);
     instance.state = workInProgress.memoizedState;
   }
 
@@ -746,13 +704,7 @@ function mountClassInstance(
     // process them now.
     updateQueue = workInProgress.updateQueue;
     if (updateQueue !== null) {
-      processUpdateQueue(
-        workInProgress,
-        updateQueue,
-        newProps,
-        instance,
-        renderExpirationTime,
-      );
+      processUpdateQueue(workInProgress, updateQueue, newProps, instance, renderExpirationTime);
       instance.state = workInProgress.memoizedState;
     }
   }
@@ -774,15 +726,8 @@ function resumeMountClassInstance(
   instance.props = oldProps;
 
   const oldContext = instance.context;
-  const nextLegacyUnmaskedContext = getUnmaskedContext(
-    workInProgress,
-    ctor,
-    true,
-  );
-  const nextLegacyContext = getMaskedContext(
-    workInProgress,
-    nextLegacyUnmaskedContext,
-  );
+  const nextLegacyUnmaskedContext = getUnmaskedContext(workInProgress, ctor, true);
+  const nextLegacyContext = getMaskedContext(workInProgress, nextLegacyUnmaskedContext);
 
   const getDerivedStateFromProps = ctor.getDerivedStateFromProps;
   const hasNewLifecycles =
@@ -801,12 +746,7 @@ function resumeMountClassInstance(
       typeof instance.componentWillReceiveProps === 'function')
   ) {
     if (oldProps !== newProps || oldContext !== nextLegacyContext) {
-      callComponentWillReceiveProps(
-        workInProgress,
-        instance,
-        newProps,
-        nextLegacyContext,
-      );
+      callComponentWillReceiveProps(workInProgress, instance, newProps, nextLegacyContext);
     }
   }
 
@@ -816,13 +756,7 @@ function resumeMountClassInstance(
   let newState = (instance.state = oldState);
   let updateQueue = workInProgress.updateQueue;
   if (updateQueue !== null) {
-    processUpdateQueue(
-      workInProgress,
-      updateQueue,
-      newProps,
-      instance,
-      renderExpirationTime,
-    );
+    processUpdateQueue(workInProgress, updateQueue, newProps, instance, renderExpirationTime);
     newState = workInProgress.memoizedState;
   }
   if (
@@ -840,12 +774,7 @@ function resumeMountClassInstance(
   }
 
   if (typeof getDerivedStateFromProps === 'function') {
-    applyDerivedStateFromProps(
-      workInProgress,
-      ctor,
-      getDerivedStateFromProps,
-      newProps,
-    );
+    applyDerivedStateFromProps(workInProgress, ctor, getDerivedStateFromProps, newProps);
     newState = workInProgress.memoizedState;
   }
 
@@ -917,15 +846,8 @@ function updateClassInstance(
   instance.props = oldProps;
 
   const oldContext = instance.context;
-  const nextLegacyUnmaskedContext = getUnmaskedContext(
-    workInProgress,
-    ctor,
-    true,
-  );
-  const nextLegacyContext = getMaskedContext(
-    workInProgress,
-    nextLegacyUnmaskedContext,
-  );
+  const nextLegacyUnmaskedContext = getUnmaskedContext(workInProgress, ctor, true);
+  const nextLegacyContext = getMaskedContext(workInProgress, nextLegacyUnmaskedContext);
 
   const getDerivedStateFromProps = ctor.getDerivedStateFromProps;
   const hasNewLifecycles =
@@ -944,31 +866,21 @@ function updateClassInstance(
       typeof instance.componentWillReceiveProps === 'function')
   ) {
     if (oldProps !== newProps || oldContext !== nextLegacyContext) {
-      callComponentWillReceiveProps(
-        workInProgress,
-        instance,
-        newProps,
-        nextLegacyContext,
-      );
+      callComponentWillReceiveProps(workInProgress, instance, newProps, nextLegacyContext);
     }
   }
 
   resetHasForceUpdateBeforeProcessing();
 
   const oldState = workInProgress.memoizedState;
-  let newState = (instance.state = oldState);
+  let newState = (instance.state = oldState); // 这里有意思，把在willReceiveProps里可能被改变的state重置了
   let updateQueue = workInProgress.updateQueue;
   if (updateQueue !== null) {
-    processUpdateQueue(
-      workInProgress,
-      updateQueue,
-      newProps,
-      instance,
-      renderExpirationTime,
-    );
+    processUpdateQueue(workInProgress, updateQueue, newProps, instance, renderExpirationTime);
     newState = workInProgress.memoizedState;
   }
 
+  // oldState === newState 理论上来说只要有setState就为false,因为最后newState是通过Object.assign({},state)合并
   if (
     oldProps === newProps &&
     oldState === newState &&
@@ -978,18 +890,12 @@ function updateClassInstance(
     // If an update was already in progress, we should schedule an Update
     // effect even though we're bailing out, so that cWU/cDU are called.
     if (typeof instance.componentDidUpdate === 'function') {
-      if (
-        oldProps !== current.memoizedProps ||
-        oldState !== current.memoizedState
-      ) {
+      if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
         workInProgress.effectTag |= Update;
       }
     }
     if (typeof instance.getSnapshotBeforeUpdate === 'function') {
-      if (
-        oldProps !== current.memoizedProps ||
-        oldState !== current.memoizedState
-      ) {
+      if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
         workInProgress.effectTag |= Snapshot;
       }
     }
@@ -997,12 +903,7 @@ function updateClassInstance(
   }
 
   if (typeof getDerivedStateFromProps === 'function') {
-    applyDerivedStateFromProps(
-      workInProgress,
-      ctor,
-      getDerivedStateFromProps,
-      newProps,
-    );
+    applyDerivedStateFromProps(workInProgress, ctor, getDerivedStateFromProps, newProps);
     newState = workInProgress.memoizedState;
   }
 
@@ -1031,11 +932,7 @@ function updateClassInstance(
         instance.componentWillUpdate(newProps, newState, nextLegacyContext);
       }
       if (typeof instance.UNSAFE_componentWillUpdate === 'function') {
-        instance.UNSAFE_componentWillUpdate(
-          newProps,
-          newState,
-          nextLegacyContext,
-        );
+        instance.UNSAFE_componentWillUpdate(newProps, newState, nextLegacyContext);
       }
       stopPhaseTimer();
     }
@@ -1049,18 +946,12 @@ function updateClassInstance(
     // If an update was already in progress, we should schedule an Update
     // effect even though we're bailing out, so that cWU/cDU are called.
     if (typeof instance.componentDidUpdate === 'function') {
-      if (
-        oldProps !== current.memoizedProps ||
-        oldState !== current.memoizedState
-      ) {
+      if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
         workInProgress.effectTag |= Update;
       }
     }
     if (typeof instance.getSnapshotBeforeUpdate === 'function') {
-      if (
-        oldProps !== current.memoizedProps ||
-        oldState !== current.memoizedState
-      ) {
+      if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
         workInProgress.effectTag |= Snapshot;
       }
     }

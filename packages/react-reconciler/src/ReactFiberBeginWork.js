@@ -315,6 +315,7 @@ function finishClassComponent(
   // Refs should update even if shouldComponentUpdate returns false
   markRef(current, workInProgress);
 
+  // TODO: 这里是有错误并且捕获到
   const didCaptureError = (workInProgress.effectTag & DidCapture) !== NoEffect;
 
   if (!shouldUpdate && !didCaptureError) {
@@ -920,6 +921,7 @@ function bailoutOnAlreadyFinishedWork(
   }
 
   // Check if the children have any pending work.
+  // 这里判断该次更新是否是由自身的子组件触发的，如果不是直接放弃diff子树
   const childExpirationTime = workInProgress.childExpirationTime;
   if (childExpirationTime === NoWork || childExpirationTime > renderExpirationTime) {
     // The children don't have any work either. We can skip them.
@@ -999,7 +1001,8 @@ function beginWork(
   }
 
   // Before entering the begin phase, clear the expiration time.
-  // TODO: 为什么要清除？不会丢失么
+  // Q:为什么要清除？不会丢失么
+  // A:不会，此函数是begin，证明已经开始执行reconciler该过程不会被打断,所以讲标志位清0
   workInProgress.expirationTime = NoWork;
 
   switch (workInProgress.tag) {
@@ -1061,6 +1064,7 @@ function beginWork(
       // vDom根节点挂载
       return updateHostRoot(current, workInProgress, renderExpirationTime);
     case HostComponent:
+      // div之类的vdom元素
       return updateHostComponent(current, workInProgress, renderExpirationTime);
     case HostText:
       return updateHostText(current, workInProgress);

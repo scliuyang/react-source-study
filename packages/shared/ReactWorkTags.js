@@ -40,7 +40,7 @@ export const HostPortal = 6; // A subtree. Could be an entry point to a differen
 export const HostComponent = 7;
 // virtual文本节点
 export const HostText = 8;
-export const Fragment = 9;
+export const Fragment = 9; // 片段，比如 [].map(()=>x)
 export const Mode = 10;
 // context api
 export const ContextConsumer = 11;

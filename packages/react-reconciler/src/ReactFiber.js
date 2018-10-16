@@ -7,19 +7,19 @@
  * @flow
  */
 
-import type {ReactElement, Source} from 'shared/ReactElementType';
-import type {ReactFragment, ReactPortal, RefObject} from 'shared/ReactTypes';
-import type {WorkTag} from 'shared/ReactWorkTags';
-import type {TypeOfMode} from './ReactTypeOfMode';
-import type {SideEffectTag} from 'shared/ReactSideEffectTags';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {UpdateQueue} from './ReactUpdateQueue';
-import type {ContextDependency} from './ReactFiberNewContext';
+import type { ReactElement, Source } from 'shared/ReactElementType';
+import type { ReactFragment, ReactPortal, RefObject } from 'shared/ReactTypes';
+import type { WorkTag } from 'shared/ReactWorkTags';
+import type { TypeOfMode } from './ReactTypeOfMode';
+import type { SideEffectTag } from 'shared/ReactSideEffectTags';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
+import type { UpdateQueue } from './ReactUpdateQueue';
+import type { ContextDependency } from './ReactFiberNewContext';
 
 import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
-import {enableProfilerTimer} from 'shared/ReactFeatureFlags';
-import {NoEffect} from 'shared/ReactSideEffectTags';
+import { enableProfilerTimer } from 'shared/ReactFeatureFlags';
+import { NoEffect } from 'shared/ReactSideEffectTags';
 import {
   IndeterminateComponent,
   ClassComponent,
@@ -40,9 +40,9 @@ import {
 } from 'shared/ReactWorkTags';
 import getComponentName from 'shared/getComponentName';
 
-import {isDevToolsPresent} from './ReactFiberDevToolsHook';
-import {NoWork} from './ReactFiberExpirationTime';
-import {NoContext, AsyncMode, ProfileMode, StrictMode} from './ReactTypeOfMode';
+import { isDevToolsPresent } from './ReactFiberDevToolsHook';
+import { NoWork } from './ReactFiberExpirationTime';
+import { NoContext, AsyncMode, ProfileMode, StrictMode } from './ReactTypeOfMode';
 import {
   REACT_FORWARD_REF_TYPE,
   REACT_FRAGMENT_TYPE,
@@ -120,11 +120,12 @@ export type Fiber = {|
   child: Fiber | null,
   // 兄弟节点
   sibling: Fiber | null,
+  // 在兄弟元素中的位置
   index: number,
 
   // The ref last used to attach this node.
   // I'll avoid adding an owner field for prod and model that as functions.
-  ref: null | (((handle: mixed) => void) & {_stringRef: ?string}) | RefObject,
+  ref: null | (((handle: mixed) => void) & { _stringRef: ?string }) | RefObject,
 
   // Input is the data coming into process this fiber. Arguments. Props.
   // pendingProps = memoizedProps证明此节点不用重新渲染
@@ -162,6 +163,8 @@ export type Fiber = {|
   // us to reuse a slice of the linked list when we reuse the work done within
   // this fiber.
   // 好像是当异步渲染中断的时候好恢复
+  // 链表，挂载的是reconciler(diff)阶段的产生的commit任务
+  // 这里是自己的child任务链
   firstEffect: Fiber | null,
   lastEffect: Fiber | null,
 
@@ -176,7 +179,7 @@ export type Fiber = {|
 
   // This is a pooled version of a Fiber. Every fiber that gets updated will
   // eventually have a pair. There are cases when we can clean up pairs to save
-  // memory if we need to. 
+  // memory if we need to.
   // 指向workingProgressFiber
   alternate: Fiber | null,
 
@@ -219,12 +222,7 @@ if (__DEV__) {
   debugCounter = 1;
 }
 
-function FiberNode(
-  tag: WorkTag,
-  pendingProps: mixed,
-  key: null | string,
-  mode: TypeOfMode,
-) {
+function FiberNode(tag: WorkTag, pendingProps: mixed, key: null | string, mode: TypeOfMode) {
   // Instance
   this.tag = tag;
   this.key = key;
@@ -305,25 +303,25 @@ function shouldConstruct(Component: Function) {
   return !!(prototype && prototype.isReactComponent);
 }
 
-export function resolveLazyComponentTag(
-  fiber: Fiber,
-  Component: Function,
-): WorkTag {
+export function resolveLazyComponentTag(fiber: Fiber, Component: Function): WorkTag {
   if (typeof Component === 'function') {
-    return shouldConstruct(Component)
-      ? ClassComponentLazy
-      : FunctionalComponentLazy;
-  } else if (
-    Component !== undefined &&
-    Component !== null &&
-    Component.$$typeof
-  ) {
+    return shouldConstruct(Component) ? ClassComponentLazy : FunctionalComponentLazy;
+  } else if (Component !== undefined && Component !== null && Component.$$typeof) {
     return ForwardRefLazy;
   }
   return IndeterminateComponent;
 }
 
 // This is used to create an alternate fiber to do work on.
+/**
+ * 这里其实就是更新workInProgress fiber的信息
+ * 以前一直理解commit阶段就是current和alternate的引用互换，达到替死的目的
+ * 实际情况则是commit current copy 来自alternate数据
+ * scheduler(计划或者说是准备)阶段 alternate copy 来自current的数据
+ * @param {*} current
+ * @param {*} pendingProps
+ * @param {*} expirationTime
+ */
 export function createWorkInProgress(
   current: Fiber,
   pendingProps: any,
@@ -336,12 +334,7 @@ export function createWorkInProgress(
     // node that we're free to reuse. This is lazily created to avoid allocating
     // extra objects for things that are never updated. It also allow us to
     // reclaim the extra memory if needed.
-    workInProgress = createFiber(
-      current.tag,
-      pendingProps,
-      current.key,
-      current.mode,
-    );
+    workInProgress = createFiber(current.tag, pendingProps, current.key, current.mode);
     workInProgress.type = current.type;
     workInProgress.stateNode = current.stateNode;
 
@@ -378,6 +371,7 @@ export function createWorkInProgress(
 
   // Don't touching the subtree's expiration time, which has not changed.
   workInProgress.childExpirationTime = current.childExpirationTime;
+  // TODO: 这里操作没看懂,来自renderRoot的疑问
   if (pendingProps !== current.pendingProps) {
     // This fiber has new props.
     workInProgress.expirationTime = expirationTime;
@@ -401,7 +395,8 @@ export function createWorkInProgress(
     workInProgress.selfBaseDuration = current.selfBaseDuration;
     workInProgress.treeBaseDuration = current.treeBaseDuration;
   }
-
+  // 自己加的，免得搞不清楚
+  workInProgress.isWorkInProgress = true;
   return workInProgress;
 }
 
@@ -441,12 +436,7 @@ export function createFiberFromElement(
   } else {
     getTag: switch (type) {
       case REACT_FRAGMENT_TYPE:
-        return createFiberFromFragment(
-          pendingProps.children,
-          mode,
-          expirationTime,
-          key,
-        );
+        return createFiberFromFragment(pendingProps.children, mode, expirationTime, key);
       case REACT_ASYNC_MODE_TYPE:
         fiberTag = Mode;
         mode |= AsyncMode | StrictMode;
@@ -482,23 +472,23 @@ export function createFiberFromElement(
           }
         }
         let info = '';
-        if (__DEV__) {
-          if (
-            type === undefined ||
-            (typeof type === 'object' &&
-              type !== null &&
-              Object.keys(type).length === 0)
-          ) {
-            info +=
-              ' You likely forgot to export your component from the file ' +
-              "it's defined in, or you might have mixed up default and " +
-              'named imports.';
-          }
-          const ownerName = owner ? getComponentName(owner.type) : null;
-          if (ownerName) {
-            info += '\n\nCheck the render method of `' + ownerName + '`.';
-          }
-        }
+        // if (__DEV__) {
+        //   if (
+        //     type === undefined ||
+        //     (typeof type === 'object' &&
+        //       type !== null &&
+        //       Object.keys(type).length === 0)
+        //   ) {
+        //     info +=
+        //       ' You likely forgot to export your component from the file ' +
+        //       "it's defined in, or you might have mixed up default and " +
+        //       'named imports.';
+        //   }
+        //   const ownerName = owner ? getComponentName(owner.type) : null;
+        //   if (ownerName) {
+        //     info += '\n\nCheck the render method of `' + ownerName + '`.';
+        //   }
+        // }
         invariant(
           false,
           'Element type is invalid: expected a string (for built-in ' +
@@ -519,6 +509,7 @@ export function createFiberFromElement(
     fiber._debugSource = element._source;
     fiber._debugOwner = element._owner;
   }
+  fiber.createFiberFromElement = 'createFiberFromElement';
 
   return fiber;
 }
@@ -541,10 +532,7 @@ export function createFiberFromProfiler(
   key: null | string,
 ): Fiber {
   if (__DEV__) {
-    if (
-      typeof pendingProps.id !== 'string' ||
-      typeof pendingProps.onRender !== 'function'
-    ) {
+    if (typeof pendingProps.id !== 'string' || typeof pendingProps.onRender !== 'function') {
       warningWithoutStack(
         false,
         'Profiler must specify an "id" string and "onRender" function as props',
@@ -566,6 +554,7 @@ export function createFiberFromText(
 ): Fiber {
   const fiber = createFiber(HostText, content, null, mode);
   fiber.expirationTime = expirationTime;
+  fiber.createFiberFromText = 'createFiberFromText';
   return fiber;
 }
 
@@ -592,10 +581,7 @@ export function createFiberFromPortal(
 }
 
 // Used for stashing WIP properties to replay failed work in DEV.
-export function assignFiberPropertiesInDEV(
-  target: Fiber | null,
-  source: Fiber,
-): Fiber {
+export function assignFiberPropertiesInDEV(target: Fiber | null, source: Fiber): Fiber {
   if (target === null) {
     // This Fiber's initial properties will always be overwritten.
     // We only use a Fiber to ensure the same hidden class so DEV isn't slow.

